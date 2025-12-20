@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "HowStoic | Forge Your Productivity",
   description: "Premium digital tools for modern stoics.",
 }
-
+// prueba 
 export default function RootLayout({
   children,
 }: Readonly<{
