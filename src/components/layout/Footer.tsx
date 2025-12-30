@@ -1,5 +1,6 @@
 "use client"
 import Link from "next/link"
+import Image from "next/image"
 import { useI18n } from "@/context/I18nContext"
 
 export function Footer() {
@@ -20,10 +21,15 @@ export function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                     <div className="col-span-1 md:col-span-2">
                         <div className="flex items-center gap-3 mb-4">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 border border-primary/20">
-                                <span className="font-serif font-bold text-primary text-xs">HS</span>
+                            <div className="relative w-10 h-10">
+                                <Image
+                                    src="/logo2.png"
+                                    alt="HowStoic Logo"
+                                    fill
+                                    className="object-contain"
+                                />
                             </div>
-                            <span className="font-serif font-bold tracking-tight">HOWSTOIC</span>
+                            <span className="font-serif font-bold tracking-tight text-primary">HOWSTOIC</span>
                         </div>
                         <p className="text-muted-foreground text-sm max-w-xs">{t("hero.subheadline")}</p>
                     </div>

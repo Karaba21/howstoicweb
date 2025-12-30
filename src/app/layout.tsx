@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/context/ThemeContext"
 import { I18nProvider } from "@/context/I18nContext"
 import { CartProvider } from "@/context/CartContext"
 import { CartDrawer } from "@/components/layout/CartDrawer"
+import { Providers } from "@/components/layout/Providers"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,8 +40,10 @@ export default function RootLayout({
         >
           <I18nProvider>
             <CartProvider>
-              {children}
-              <CartDrawer />
+              <Providers>
+                {children}
+                <CartDrawer />
+              </Providers>
             </CartProvider>
           </I18nProvider>
         </ThemeProvider>
