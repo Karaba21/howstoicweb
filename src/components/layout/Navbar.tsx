@@ -17,7 +17,7 @@ export function Navbar() {
     const { theme, setTheme } = useTheme()
     const { t, locale, setLocale } = useI18n()
     const { items, toggleCart } = useCart()
-    const { level, xp } = useGamification()
+    const { level, xp, oro } = useGamification()
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
@@ -129,8 +129,15 @@ export function Navbar() {
                             )}
                         </Button>
 
-                        {/* User & Level */}
+                        {/* Gamification Stats */}
                         <div className="flex items-center gap-2">
+                            {/* Oro Balance */}
+                            <Link href="/tavern" className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FFD700]/10 border border-[#FFD700]/30 hover:bg-[#FFD700]/20 transition-colors group/oro">
+                                <span className="w-4 h-4 rounded-full bg-[#FFD700] flex items-center justify-center text-[10px] font-bold text-black group-hover/oro:scale-110 transition-transform">$</span>
+                                <span className="text-xs font-bold text-[#FFD700]">{oro}</span>
+                            </Link>
+
+                            {/* Level */}
                             <Link href="/dashboard" className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
                                 <Trophy className="w-4 h-4 text-primary" />
                                 <span className="text-xs font-bold text-primary">Lvl {level}</span>
