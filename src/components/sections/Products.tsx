@@ -7,10 +7,13 @@ import { ProductCard } from "@/components/ui/ProductCard"
 import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { PurchaseModal } from "@/components/ui/PurchaseModal"
+import { Product } from "@/data/products"
 
 export function Products() {
     const { t } = useI18n()
     const [filter, setFilter] = useState("all")
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
     const categories = [
         { id: "all", label: t("products.filter.all") },
@@ -63,13 +66,26 @@ export function Products() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.2 }}
                                 key={product.id}
+                                onClick={() => {
+                                    if (product.category === "reading" || product.id.startsWith("tomo")) {
+                                        setSelectedProduct(product)
+                                    }
+                                }}
                             >
-                                <ProductCard product={product} />
+                                <ProductCard
+                                    product={product}
+                                    onPurchase={() => setSelectedProduct(product)}
+                                />
                             </motion.div>
                         ))}
                     </AnimatePresence>
                 </motion.div>
             </div>
-        </section>
+            <PurchaseModal
+                isOpen={!!selectedProduct}
+                onClose={() => setSelectedProduct(null)}
+                product={selectedProduct}
+            />
+        </section >
     )
 }

@@ -7,13 +7,15 @@ import { useCart } from "@/context/CartContext"
 import { useI18n } from "@/context/I18nContext"
 import { ShoppingCart } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 interface ProductCardProps {
     product: Product
     className?: string
+    onPurchase?: () => void
 }
 
-export function ProductCard({ product, className }: ProductCardProps) {
+export function ProductCard({ product, className, onPurchase }: ProductCardProps) {
     const { addItem } = useCart()
     const { t } = useI18n()
 
@@ -22,7 +24,16 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <div className="relative aspect-square bg-muted overflow-hidden">
                 {/* Placeholder for image */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center text-primary/20 font-serif font-bold text-4xl group-hover:scale-110 transition-transform duration-500">
-                    HS
+                    {product.image ? (
+                        <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                        />
+                    ) : (
+                        "HS"
+                    )}
                 </div>
                 {product.isNew && (
                     <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">
@@ -30,7 +41,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     </div>
                 )}
                 {product.popular && (
-                    <div className="absolute top-2 left-2 bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">
+                    <div className="absolute top-2 left-2 bg-yellow-500/20 text-yellow-500 border border-yellow-500/50 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm dark:bg-primary/20 dark:text-primary dark:border-primary/50">
                         Popular
                     </div>
                 )}
@@ -50,7 +61,18 @@ export function ProductCard({ product, className }: ProductCardProps) {
                             )}
                         </div>
                     </div>
-                    <Button size="sm" onClick={() => addItem(product)} className="gap-2">
+                    <Button
+                        size="sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (onPurchase) {
+                                onPurchase();
+                            } else {
+                                addItem(product);
+                            }
+                        }}
+                        className="gap-2"
+                    >
                         <span>{t("products.addToCart")}</span>
                         <ShoppingCart className="w-4 h-4" />
                     </Button>

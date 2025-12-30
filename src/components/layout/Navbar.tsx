@@ -9,11 +9,15 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, ShoppingCart, User, Sun, Moon, Globe } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
+import { useGamification } from "@/context/GamificationContext"
+import { Trophy } from "lucide-react"
 
 export function Navbar() {
     const { theme, setTheme } = useTheme()
     const { t, locale, setLocale } = useI18n()
     const { items, toggleCart } = useCart()
+    const { level, xp } = useGamification()
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
@@ -68,13 +72,19 @@ export function Navbar() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
+                    {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 border border-primary/20 transition-transform group-hover:scale-105">
-                            <span className="font-serif font-bold text-primary">HS</span>
+                        <div className="relative w-20 h-20 transition-transform group-hover:scale-110">
+                            <Image
+                                src="/logo1.png"
+                                alt="HowStoic Ratio Logo"
+                                fill
+                                className="object-contain"
+                            />
                         </div>
                         <div className="flex flex-col">
-                            <span className="font-serif font-bold tracking-tight leading-none text-foreground">HOWSTOIC</span>
-                            <span className="text-[10px] uppercase tracking-widest text-muted-foreground leading-none mt-0.5">Digital</span>
+                            <span className="font-serif font-bold tracking-tight leading-none text-foreground group-hover:text-primary transition-colors">HOWSTOIC</span>
+                            <span className="text-[10px] uppercase tracking-widest text-primary leading-none mt-0.5">Digital</span>
                         </div>
                     </Link>
 
@@ -119,12 +129,19 @@ export function Navbar() {
                             )}
                         </Button>
 
-                        {/* User */}
-                        <Link href="/login">
-                            <Button variant="ghost" size="icon">
-                                <User className="w-5 h-5" />
-                            </Button>
-                        </Link>
+                        {/* User & Level */}
+                        <div className="flex items-center gap-2">
+                            <Link href="/dashboard" className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+                                <Trophy className="w-4 h-4 text-primary" />
+                                <span className="text-xs font-bold text-primary">Lvl {level}</span>
+                            </Link>
+
+                            <Link href="/login">
+                                <Button variant="ghost" size="icon">
+                                    <User className="w-5 h-5" />
+                                </Button>
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Mobile Toggle */}
