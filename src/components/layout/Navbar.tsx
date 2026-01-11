@@ -2,22 +2,22 @@
 
 import React, { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { useI18n } from "@/context/I18nContext"
 import { useCart } from "@/context/CartContext"
 import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ShoppingCart, User, Sun, Moon, Globe } from "lucide-react"
+import { Menu, X, ShoppingCart, User, Sun, Moon, Globe, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 import { useGamification } from "@/context/GamificationContext"
-import { Trophy } from "lucide-react"
 
 export function Navbar() {
     const { theme, setTheme } = useTheme()
     const { t, locale, setLocale } = useI18n()
     const { items, toggleCart } = useCart()
-    const { level, xp, oro } = useGamification()
+    const { level, xp, equippedFrame, storeItems, oro } = useGamification()
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [mounted, setMounted] = useState(false)
@@ -137,17 +137,41 @@ export function Navbar() {
                                 <span className="text-xs font-bold text-[#FFD700]">{oro}</span>
                             </Link>
 
-                            {/* Level */}
-                            <Link href="/dashboard" className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
-                                <Trophy className="w-4 h-4 text-primary" />
-                                <span className="text-xs font-bold text-primary">Lvl {level}</span>
-                            </Link>
+                            {/* User & Level */}
+                            <div className="flex items-center gap-4">
+                                <Link href="/dashboard" className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+                                    <Trophy className="w-4 h-4 text-primary" />
+                                    <span className="text-xs font-bold text-primary">Lvl {level}</span>
+                                </Link>
 
-                            <Link href="/login">
-                                <Button variant="ghost" size="icon">
-                                    <User className="w-5 h-5" />
-                                </Button>
-                            </Link>
+                                <Link href="/dashboard" className="relative group">
+                                    <div className={cn("relative w-9 h-9 flex items-center justify-center rounded-full bg-secondary transition-all group-hover:bg-primary/10",
+                                        (equippedFrame && storeItems) ? "overflow-visible" : "overflow-hidden"
+                                    )}>
+                                        <User className="w-5 h-5 text-foreground/80 group-hover:text-primary transition-colors" />
+
+                                        {/* Equipped Frame Overlay */}
+                                        {equippedFrame && (
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[160%] h-[160%] pointer-events-none z-10">
+                                                {(() => {
+                                                    const frame = storeItems?.find(i => i.id === equippedFrame);
+                                                    return frame?.image ? (
+                                                        <Image
+                                                            src={frame.image}
+                                                            alt="Frame"
+                                                            fill
+                                                            className={cn("object-contain",
+                                                                frame.visualEffect === "shine" && "animate-pulse",
+                                                                frame.visualEffect === "pulse" && "animate-pulse"
+                                                            )}
+                                                        />
+                                                    ) : null;
+                                                })()}
+                                            </div>
+                                        )}
+                                    </div>
+                                </Link>
+                            </div>
                         </div>
                     </div>
 

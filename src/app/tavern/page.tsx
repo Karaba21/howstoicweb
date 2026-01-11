@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { useGamification, StoreItem } from "@/context/GamificationContext"
-import { storeItems } from "@/data/storeItems"
+
 import { motion } from "framer-motion"
 import { Coins, Lock, Check } from "lucide-react"
 import { Button } from "@/components/ui/Button"
@@ -10,7 +10,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export default function TavernPage() {
-    const { oro, buyItem, inventory } = useGamification()
+    const { oro, buyItem, inventory, equipFrame, equippedFrame, storeItems } = useGamification()
     const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null)
 
     const handleBuy = (item: StoreItem) => {
@@ -86,7 +86,7 @@ export default function TavernPage() {
                                                 src={item.image}
                                                 alt={item.name}
                                                 fill
-                                                className="object-contain relative z-10"
+                                                className="object-contain relative z-10 mix-blend-screen"
                                                 onError={(e) => {
                                                     // Fallback if image fails
                                                     e.currentTarget.style.display = 'none'
@@ -121,16 +121,26 @@ export default function TavernPage() {
                                         className={cn(
                                             "w-full font-bold tracking-wide",
                                             isOwned
-                                                ? "bg-neutral-700 text-neutral-400 cursor-default hover:bg-neutral-700"
+                                                ? (item.type === "frame" && equippedFrame === item.id)
+                                                    ? "bg-green-500 text-white hover:bg-green-600"
+                                                    : "bg-neutral-700 text-neutral-400 hover:bg-neutral-600"
                                                 : canAfford
                                                     ? "bg-[#FFD700] text-black hover:bg-[#FFD700]/90"
                                                     : "bg-neutral-800 text-neutral-500 hover:bg-neutral-800 cursor-not-allowed"
                                         )}
-                                        onClick={() => !isOwned && canAfford && handleBuy(item)}
-                                        disabled={isOwned || !canAfford}
+                                        onClick={() => {
+                                            if (isOwned) {
+                                                if (item.type === "frame") equipFrame(item.id)
+                                            } else if (canAfford) {
+                                                handleBuy(item)
+                                            }
+                                        }}
+                                        disabled={(isOwned && item.type !== "frame") || (!isOwned && !canAfford) || (item.type === "frame" && equippedFrame === item.id)}
                                     >
                                         {isOwned ? (
-                                            "In Inventory"
+                                            item.type === "frame" ? (
+                                                equippedFrame === item.id ? "Equipped" : "Equip"
+                                            ) : "In Inventory"
                                         ) : canAfford ? (
                                             "Purchase"
                                         ) : (

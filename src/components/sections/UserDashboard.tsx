@@ -1,17 +1,18 @@
 "use client"
 
 import React, { useState } from "react"
+import Link from "next/link"
 import { useGamification } from "@/context/GamificationContext"
 import { storeItems } from "@/data/storeItems"
 import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import { motion } from "framer-motion"
-import { Trophy, Flame, Users, CheckCircle2, Circle, Star, Copy, Share2, Crown, User as UserIcon } from "lucide-react"
+import { Trophy, Flame, Calendar, Copy, CheckCircle2, Circle, Gift, Star, Zap, Target, User, Crown, Users, Share2 } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export function UserDashboard() {
-    const { xp, level, streak, challenges, referralCode, referrals, completeChallenge, addReferral, inventory, equippedFrame, equipFrame, oro } = useGamification()
+    const { xp, level, streak, challenges, referralCode, referrals, completeChallenge, addReferral, oro, inventory, storeItems, buyItem, equipFrame, equippedFrame } = useGamification()
     const [copied, setCopied] = useState(false)
     const [friendCode, setFriendCode] = useState("")
 
@@ -45,7 +46,7 @@ export function UserDashboard() {
                         <div className="relative w-24 h-24 mb-4">
                             {/* Avatar */}
                             <div className="absolute inset-2 bg-neutral-200 rounded-full overflow-hidden flex items-center justify-center border-2 border-white">
-                                <UserIcon className="w-12 h-12 text-neutral-400" />
+                                <User className="w-12 h-12 text-neutral-400" />
                             </div>
 
                             {/* Frame */}
@@ -71,10 +72,10 @@ export function UserDashboard() {
 
                         <h2 className="text-xl font-serif font-bold">Stoic Warrior</h2>
                         <div className="flex items-center gap-2 mt-2">
-                            <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-xs font-bold border border-[#FFD700]/30">
+                            <Link href="/tavern" className="flex items-center gap-1 px-3 py-1 rounded-full bg-[#FFD700]/20 text-[#FFD700] text-xs font-bold border border-[#FFD700]/30 hover:bg-[#FFD700]/30 transition-colors cursor-pointer">
                                 <Crown className="w-3 h-3" />
                                 <span>{oro} Oro</span>
-                            </div>
+                            </Link>
                             <div className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold border border-primary/30">
                                 Lvl {level}
                             </div>
@@ -343,6 +344,8 @@ export function UserDashboard() {
                     </div>
                 </Card>
             </div>
+
+
         </section>
     )
 }
