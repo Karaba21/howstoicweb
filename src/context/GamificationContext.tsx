@@ -57,9 +57,67 @@ interface GamificationContextType {
     addReferral: () => void
     buyItem: (item: StoreItem) => boolean
     equipFrame: (frameId: string) => void
+    storeItems: StoreItem[]
 }
 
 const GamificationContext = createContext<GamificationContextType | undefined>(undefined)
+
+export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
+    {
+        id: "frame_gold_simple",
+        name: "Classic Gold",
+        description: "A simple, elegant ring of pure gold.",
+        price: 100,
+        type: "frame",
+        image: "/border_gold_simple_1768089887619.png", // Filename matches artifact copy
+        visualEffect: "metallic"
+    },
+    {
+        id: "frame_greek_laurel",
+        name: "Emperor's Laurel",
+        description: "A symbol of victory and status in ancient Greece.",
+        price: 500,
+        type: "frame",
+        image: "/border_greek_laurel_1768089900249.png",
+        visualEffect: "shine"
+    },
+    {
+        id: "frame_ethereal_blue",
+        name: "Stoic Void",
+        description: "A glowing neon border from the future.",
+        price: 1000,
+        type: "frame",
+        image: "/border_ethereal_blue_1768089912087.png",
+        visualEffect: "pulse"
+    },
+    {
+        id: "frame_stoic_fire",
+        name: "Inner Fire",
+        description: "Unquenchable will, manifested as flames.",
+        price: 2500,
+        type: "frame",
+        image: "/border_stoic_fire_1768090002141.png",
+        visualEffect: "pulse"
+    },
+    {
+        id: "frame_marble_gold",
+        name: "Pantheon",
+        description: "Heavy marble and gold, fit for the gods.",
+        price: 5000,
+        type: "frame",
+        image: "/border_marble_gold_elite_1768090015774.png",
+        visualEffect: "metallic"
+    },
+    {
+        id: "frame_cosmic_void",
+        name: "Cosmic Infinite",
+        description: "Stare into the void, and let it stare back.",
+        price: 10000,
+        type: "frame",
+        image: "/border_cosmic_void_1768090028445.png",
+        visualEffect: "void"
+    }
+]
 
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
     const [xp, setXp] = useState(0)
@@ -84,12 +142,19 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         { id: "a_collector_3", title: "Collector", description: "Own 3 distinct frames.", icon: "Images", progress: 0, target: 3, completed: false, rewardOro: 300, rewardXp: 600 },
     ])
 
-    // Derived state for level (Simple formula: Level = 1 + floor(XP / 100))
+    // Derived state for level (Quadratic formula: Level = floor(sqrt(XP / 50)) + 1)
+    // This ensures harder leveling as you progress.
+    // Level 1: 0-49 XP
+    // Level 2: 50 XP
+    // Level 3: 200 XP
+    // Level 4: 450 XP
+    // Level 5: 800 XP
+    // Level 10: 4500 XP
     // We track previous level to detect level up
     const [currentLevel, setCurrentLevel] = useState(1)
 
     // Calculate level based on XP
-    const calculatedLevel = 1 + Math.floor(xp / 100)
+    const calculatedLevel = 1 + Math.floor(Math.sqrt(xp / 50))
 
     // Effect to handle level up
     useEffect(() => {
@@ -173,7 +238,11 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     }
 
     const checkAchievements = (currentTotalChallenges: number, currentStreak: number, currentOro: number, currentFrames: number) => {
-        setAchievements(prev => prev.map(ach => {
+        let xpReward = 0
+        let oroReward = 0
+
+        // Calculate new state based on current achievements
+        const nextAchievements = achievements.map(ach => {
             if (ach.completed) return ach
 
             let newProgress = ach.progress
@@ -196,30 +265,42 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             if (ach.id.includes("collector")) newProgress = currentFrames
 
             if (newlyCompleted) {
-                addXp(ach.rewardXp, `Achievement Unlocked: ${ach.title}`)
-                setOro(o => o + ach.rewardOro)
+                xpReward += ach.rewardXp
+                oroReward += ach.rewardOro
                 console.log(`Unlocked Achievement: ${ach.title}`)
             }
 
             return { ...ach, progress: newProgress, completed: ach.completed || newlyCompleted }
-        }))
+        })
+
+        // Only update state if something changed
+        if (JSON.stringify(nextAchievements) !== JSON.stringify(achievements)) {
+            setAchievements(nextAchievements)
+
+            if (xpReward > 0) {
+                addXp(xpReward, "Achievements Unlocked")
+            }
+            if (oroReward > 0) {
+                setOro(prev => prev + oroReward)
+            }
+        }
     }
 
     const completeChallenge = (id: string) => {
-        setChallenges(prev => {
-            const challenge = prev.find(c => c.id === id)
-            if (challenge && !challenge.completed) {
-                const newTotal = totalChallengesCompleted + 1
-                setTotalChallengesCompleted(newTotal) // Update state
+        const challenge = challenges.find(c => c.id === id)
+        if (challenge && !challenge.completed) {
+            const newTotal = totalChallengesCompleted + 1
+            setTotalChallengesCompleted(newTotal)
 
-                // Check achievements
-                checkAchievements(newTotal, streak, oro, inventory.filter(i => i.startsWith('frame')).length)
+            // 1. Mark as completed in state
+            setChallenges(prev => prev.map(c => c.id === id ? { ...c, completed: true } : c))
 
-                addXp(challenge.xpReward, `Completed challenge: ${challenge.title}`)
-                return prev.map(c => c.id === id ? { ...c, completed: true } : c)
-            }
-            return prev
-        })
+            // 2. Add XP for the challenge itself
+            addXp(challenge.xpReward, `Completed challenge: ${challenge.title}`)
+
+            // 3. Check for achievements (which might add more XP/Oro)
+            checkAchievements(newTotal, streak, oro, inventory.filter(i => i.startsWith('frame')).length)
+        }
     }
 
     const checkDailyLogin = () => {
@@ -295,7 +376,8 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             checkDailyLogin,
             addReferral,
             buyItem,
-            equipFrame
+            equipFrame,
+            storeItems: AVAILABLE_STORE_ITEMS
         }}>
             {children}
         </GamificationContext.Provider>
