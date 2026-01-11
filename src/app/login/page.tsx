@@ -4,9 +4,39 @@ import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { ArrowLeft, User, Lock, Mail } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 export default function LoginPage() {
     const { t } = useI18n()
+    const router = useRouter()
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
+
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            })
+
+            if (error) throw error
+
+            router.push("/")
+            router.refresh()
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
         <main className="min-h-screen relative flex items-center justify-center p-4">
@@ -31,7 +61,7 @@ export default function LoginPage() {
                     <p className="text-muted-foreground text-sm">Sign in to continue your journey</p>
                 </div>
 
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-4" onSubmit={handleLogin}>
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Email</label>
                         <div className="relative">
@@ -40,6 +70,9 @@ export default function LoginPage() {
                                 type="email"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                 placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
@@ -51,6 +84,9 @@ export default function LoginPage() {
                                 type="password"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
@@ -63,7 +99,15 @@ export default function LoginPage() {
                         <a href="#" className="text-primary hover:underline">Forgot password?</a>
                     </div>
 
-                    <Button className="w-full" size="lg">Sign In</Button>
+                    {error && (
+                        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
+                            {error}
+                        </div>
+                    )}
+
+                    <Button className="w-full" size="lg" disabled={loading}>
+                        {loading ? "Signing in..." : "Sign In"}
+                    </Button>
                 </form>
 
                 <div className="mt-6 text-center text-sm text-muted-foreground">

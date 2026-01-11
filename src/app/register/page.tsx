@@ -4,9 +4,51 @@ import { Card } from "@/components/ui/Card"
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { ArrowLeft, User, Lock, Mail, Gift } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 export default function RegisterPage() {
     const { t } = useI18n()
+    const router = useRouter()
+    const [fullName, setFullName] = useState("")
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [referralCode, setReferralCode] = useState("") // Not yet used in signUp logic but captured
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
+    const handleSignup = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
+
+        try {
+            // If we had a mechanism to process referral code during signup, it would go here.
+            // For now, we'll just pass full_name.
+            const { error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        // optional: save referral code in metadata if you want to process it later via trigger
+                        referral_code: referralCode
+                    },
+                },
+            })
+
+            if (error) throw error
+
+            router.push("/")
+            router.refresh()
+        } catch (err: any) {
+            console.error("FULL SIGNUP ERROR:", err)
+            setError(err.message || "An unknown error occurred")
+        } finally {
+            setLoading(false)
+        }
+    }
 
     return (
         <main className="min-h-screen relative flex items-center justify-center p-4">
@@ -31,7 +73,7 @@ export default function RegisterPage() {
                     <p className="text-muted-foreground text-sm">Join the Stoic community today</p>
                 </div>
 
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-4" onSubmit={handleSignup}>
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Full Name</label>
                         <div className="relative">
@@ -40,6 +82,9 @@ export default function RegisterPage() {
                                 type="text"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                 placeholder="Marcus Aurelius"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
@@ -51,6 +96,9 @@ export default function RegisterPage() {
                                 type="email"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                 placeholder="you@example.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
@@ -62,6 +110,9 @@ export default function RegisterPage() {
                                 type="password"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-transparent focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                                 placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
                             />
                         </div>
                     </div>
@@ -76,11 +127,21 @@ export default function RegisterPage() {
                                 type="text"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg bg-secondary/50 border border-primary/20 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-muted-foreground/50"
                                 placeholder="Optional: Friend's ID"
+                                value={referralCode}
+                                onChange={(e) => setReferralCode(e.target.value)}
                             />
                         </div>
                     </div>
 
-                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-2" size="lg">Sign Up</Button>
+                    {error && (
+                        <div className="p-3 text-sm text-red-500 bg-red-50 rounded-md border border-red-200">
+                            {error}
+                        </div>
+                    )}
+
+                    <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-2" size="lg" disabled={loading}>
+                        {loading ? "Creating Account..." : "Sign Up"}
+                    </Button>
                 </form>
 
                 <div className="mt-6 text-center text-sm text-muted-foreground">

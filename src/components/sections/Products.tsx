@@ -4,16 +4,21 @@ import { useState } from "react"
 import { useI18n } from "@/context/I18nContext"
 import { products } from "@/data/products"
 import { ProductCard } from "@/components/ui/ProductCard"
-import { Button } from "@/components/ui/Button"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
-import { PurchaseModal } from "@/components/ui/PurchaseModal"
 import { Product } from "@/data/products"
+import { useRouter } from "next/navigation"
 
-export function Products() {
+interface ProductsProps {
+    initialProducts?: Product[]
+}
+
+export function Products({ initialProducts = [] }: ProductsProps) {
     const { t } = useI18n()
     const [filter, setFilter] = useState("all")
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    const router = useRouter()
+
+    const displayProducts = initialProducts.length > 0 ? initialProducts : products
 
     const categories = [
         { id: "all", label: t("products.filter.all") },
@@ -25,8 +30,13 @@ export function Products() {
     ]
 
     const filteredProducts = filter === "all"
-        ? products
-        : products.filter(p => p.category === filter)
+        ? displayProducts
+        : displayProducts.filter(p => p.category === filter)
+
+    const handleProductClick = (product: Product) => {
+        const handle = product.handle || product.id
+        router.push(`/products/${handle}`)
+    }
 
     return (
         <section id="products" className="py-24 relative">
@@ -66,26 +76,18 @@ export function Products() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.2 }}
                                 key={product.id}
-                                onClick={() => {
-                                    if (product.category === "reading" || product.id.startsWith("tomo")) {
-                                        setSelectedProduct(product)
-                                    }
-                                }}
+                                onClick={() => handleProductClick(product)}
+                                className="cursor-pointer"
                             >
                                 <ProductCard
                                     product={product}
-                                    onPurchase={() => setSelectedProduct(product)}
+                                    onPurchase={() => handleProductClick(product)}
                                 />
                             </motion.div>
                         ))}
                     </AnimatePresence>
                 </motion.div>
             </div>
-            <PurchaseModal
-                isOpen={!!selectedProduct}
-                onClose={() => setSelectedProduct(null)}
-                product={selectedProduct}
-            />
         </section >
     )
 }

@@ -7,13 +7,17 @@ import { Community } from "@/components/sections/Community"
 import { Library } from "@/components/sections/Library"
 import { Contact } from "@/components/sections/Contact"
 
-export default function Home() {
+import { getProductsInCollection } from "@/lib/shopify"
+
+export default async function Home() {
+  const shopifyProducts = await getProductsInCollection()
+
   return (
     <main className="min-h-screen relative overflow-hidden">
       <Navbar />
       <div className="flex flex-col gap-0">
         <Hero />
-        <Products />
+        <Products initialProducts={shopifyProducts} />
         <Packs />
         <Community />
         <Library />

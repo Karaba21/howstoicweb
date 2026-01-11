@@ -1,5 +1,6 @@
 export interface Product {
     id: string
+    handle: string
     name: string
     description: string
     price: number
@@ -8,11 +9,13 @@ export interface Product {
     image?: string
     isNew?: boolean
     popular?: boolean
+    onlineStoreUrl?: string
 }
 
 export const products: Product[] = [
     {
         id: "tomo1",
+        handle: "tomo-1-fundamentals",
         name: "Tomo 1: Fundamentals",
         description: "The beginning of your Stoic journey. Master the basics.",
         price: 6.99,
@@ -22,7 +25,8 @@ export const products: Product[] = [
     },
     {
         id: "tomo2",
-        name: "Tomo 2: Adavanced Practice",
+        handle: "tomo-2-advanced-practice",
+        name: "Tomo 2: Advanced Practice",
         description: "Deepen your understanding and application of Stoicism.",
         price: 6.99,
         category: "reading",
@@ -30,6 +34,7 @@ export const products: Product[] = [
     },
     {
         id: "tomo3",
+        handle: "tomo-3-mastery",
         name: "Tomo 3: Mastery",
         description: "Achieve true resilience and inner peace.",
         price: 6.99,
