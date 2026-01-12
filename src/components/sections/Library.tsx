@@ -45,29 +45,83 @@ export function Library() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-6">
-                    {resources.map((res, i) => (
-                        <Card key={i} className="group cursor-pointer hover:border-primary/50">
-                            <div className="h-40 bg-muted relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                                    <span className="text-white text-xs font-bold px-2 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/10 uppercase tracking-wider">
-                                        {res.category}
-                                    </span>
+                    {resources.map((res, i) => {
+                        if (i === 0) {
+                            return (
+                                <div key={i} className="rounded-xl overflow-hidden shadow-sm border bg-black min-h-[300px]">
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        src="https://www.youtube.com/embed/HBPZfoB74PI?si=Q-plCuutfmKWqu-1"
+                                        title="YouTube video player"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        referrerPolicy="strict-origin-when-cross-origin"
+                                        allowFullScreen
+                                        className="w-full h-full"
+                                    ></iframe>
                                 </div>
-                            </div>
-                            <div className="p-6 space-y-4">
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground font-bold uppercase tracking-wider">
-                                    {res.icon}
-                                    <span>{res.type}</span>
-                                    <span className="w-1 h-1 rounded-full bg-border" />
-                                    <span>{res.readTime}</span>
+                            )
+                        }
+
+                        if (i === 1) {
+                            return (
+                                <div key={i} className="rounded-xl overflow-hidden shadow-sm border bg-black min-h-[300px]">
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        src="https://www.youtube.com/embed/EFkyxzJtiv4?si=fQWWEZIDMG9XsBER"
+                                        title="YouTube video player"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        referrerPolicy="strict-origin-when-cross-origin"
+                                        allowFullScreen
+                                        className="w-full h-full"
+                                    ></iframe>
                                 </div>
-                                <h3 className="font-serif font-bold text-xl group-hover:text-primary transition-colors">{res.title}</h3>
-                                <Button size="sm" variant="secondary" className="w-full">
-                                    {t("library.view")}
-                                </Button>
-                            </div>
-                        </Card>
-                    ))}
+                            )
+                        }
+                        if (i === 2) {
+                            return (
+                                <div key={i} className="rounded-xl overflow-hidden shadow-sm border bg-black min-h-[300px]">
+                                    <iframe
+                                        width="100%"
+                                        height="100%"
+                                        src="https://www.youtube.com/embed/QYAnJ_QyCQg?si=FUYyTD1L2a8VUrY3"
+                                        title="YouTube video player"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        referrerPolicy="strict-origin-when-cross-origin"
+                                        allowFullScreen
+                                        className="w-full h-full"
+                                    ></iframe>
+                                </div>
+                            )
+                        }
+                        return (
+                            <Card key={i} className="group cursor-pointer hover:border-primary/50">
+                                <div className="h-40 bg-muted relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                                        <span className="text-white text-xs font-bold px-2 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/10 uppercase tracking-wider">
+                                            {res.category}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="p-6 space-y-4">
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                                        {res.icon}
+                                        <span>{res.type}</span>
+                                        <span className="w-1 h-1 rounded-full bg-border" />
+                                        <span>{res.readTime}</span>
+                                    </div>
+                                    <h3 className="font-serif font-bold text-xl group-hover:text-primary transition-colors">{res.title}</h3>
+                                    <Button size="sm" variant="secondary" className="w-full">
+                                        {t("library.view")}
+                                    </Button>
+                                </div>
+                            </Card>
+                        )
+                    })}
                 </div>
             </div>
         </section>

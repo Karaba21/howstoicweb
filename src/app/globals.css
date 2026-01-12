@@ -127,6 +127,10 @@
      when custom utilities are not fully configured in theme.
      The visual styles should still work thanks to the classes used in components.
   */
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));

@@ -58,12 +58,21 @@ export function Hero() {
                         </motion.p>
 
                         <motion.div variants={item} className="flex flex-col sm:flex-row gap-6 justify-center pt-8">
-                            <Button size="lg" className="h-14 px-8 text-lg rounded-none border border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground transition-all duration-500 font-serif">
+                            <Button
+                                size="lg"
+                                className="h-14 px-10 text-lg rounded-full shadow-lg shadow-primary/25 hover:shadow-primary/40 font-serif transition-all duration-300 hover:scale-105"
+                            >
                                 {t("hero.ctaPrimary")}
                             </Button>
-                            <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-none border-zinc-800 hover:bg-zinc-900 transition-all duration-500 font-serif">
-                                {t("hero.ctaSecondary")}
-                            </Button>
+                            <a href="#products" className="inline-block">
+                                <Button
+                                    size="lg"
+                                    variant="outline"
+                                    className="h-14 px-10 text-lg rounded-full border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 text-foreground backdrop-blur-sm transition-all duration-300 font-serif"
+                                >
+                                    {t("hero.ctaSecondary")}
+                                </Button>
+                            </a>
                         </motion.div>
 
                         <motion.div variants={item} className="pt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-muted-foreground max-w-3xl mx-auto border-t border-white/5 mt-12">
