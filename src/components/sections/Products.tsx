@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useI18n } from "@/context/I18nContext"
-import { products } from "@/data/products"
 import { ProductCard } from "@/components/ui/ProductCard"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -18,20 +17,32 @@ export function Products({ initialProducts = [] }: ProductsProps) {
     const [filter, setFilter] = useState("all")
     const router = useRouter()
 
-    const displayProducts = initialProducts.length > 0 ? initialProducts : products
+    const displayProducts = initialProducts.length > 0 ? initialProducts : []
 
+    // Define the allowed collections
+    const allowedCollections = ["Books", "Packs", "Spreadsheets"]
+
+    // Extract unique collections from products and filter to only allowed ones
+    const uniqueCollections = Array.from(
+        new Set(
+            displayProducts.flatMap(p => p.collections || [])
+        )
+    )
+        .filter(collection => allowedCollections.includes(collection))
+        .sort()
+
+    // Build categories dynamically from filtered collections
     const categories = [
         { id: "all", label: t("products.filter.all") },
-        { id: "habits", label: t("products.filter.habits") },
-        { id: "reading", label: t("products.filter.reading") },
-        { id: "fitness", label: t("products.filter.fitness") },
-        { id: "finance", label: t("products.filter.finance") },
-        { id: "mindset", label: t("products.filter.mindset") },
+        ...uniqueCollections.map(collection => ({
+            id: collection,
+            label: collection
+        }))
     ]
 
     const filteredProducts = filter === "all"
         ? displayProducts
-        : displayProducts.filter(p => p.category === filter)
+        : displayProducts.filter(p => p.collections?.includes(filter))
 
     const handleProductClick = (product: Product) => {
         const handle = product.handle || product.id

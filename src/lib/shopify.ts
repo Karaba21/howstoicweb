@@ -53,6 +53,14 @@ export async function getProductsInCollection() {
             }
           }
           productType
+          collections(first: 10) {
+            edges {
+              node {
+                title
+                handle
+              }
+            }
+          }
           onlineStoreUrl
         }
       }
@@ -65,6 +73,8 @@ export async function getProductsInCollection() {
 
   return allProducts.map((edge: any) => {
     const node = edge.node;
+    const collections = node.collections?.edges?.map((collectionEdge: any) => collectionEdge.node.title) || [];
+
     return {
       id: node.id,
       handle: node.handle,
@@ -75,6 +85,7 @@ export async function getProductsInCollection() {
       category: node.productType ? node.productType.toLowerCase() : "reading", // Default mapping
       isNew: false, // Default
       popular: false, // Default
+      collections: collections, // Shopify collections
       onlineStoreUrl: node.onlineStoreUrl
     };
   });
