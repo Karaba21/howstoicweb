@@ -92,7 +92,6 @@ export function Products({ initialProducts = [] }: ProductsProps) {
                             >
                                 <ProductCard
                                     product={product}
-                                    onPurchase={() => handleProductClick(product)}
                                 />
                             </motion.div>
                         ))}

@@ -10,6 +10,7 @@ export interface Product {
     isNew?: boolean
     popular?: boolean
     onlineStoreUrl?: string
-    collections?: string[] // Shopify collections this product belongs to
+    collections?: string[]
+    variantId?: string
 }
 

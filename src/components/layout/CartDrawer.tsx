@@ -80,7 +80,10 @@ export function CartDrawer() {
                                 <span>{t("cart.total")}</span>
                                 <span>${total.toFixed(2)}</span>
                             </div>
-                            <Button className="w-full" size="lg" disabled={items.length === 0}>
+                            <Button className="w-full" size="lg" disabled={items.length === 0} onClick={() => {
+                                const checkoutUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN}/cart/${items.map(item => `${item.variantId}:1`).join(',')}`
+                                window.location.href = checkoutUrl
+                            }}>
                                 {t("cart.checkout")}
                             </Button>
                         </div>

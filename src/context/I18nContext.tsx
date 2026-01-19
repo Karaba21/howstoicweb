@@ -51,7 +51,7 @@ const translations = {
             title: "Carrito",
             empty: "Tu carrito está vacío",
             total: "Subtotal",
-            checkout: "Finalizar compra",
+            checkout: "Comprar",
         },
     },
     en: {

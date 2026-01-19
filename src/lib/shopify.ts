@@ -43,6 +43,13 @@ export async function getProductsInCollection() {
               amount
             }
           }
+          variants(first: 1) {
+            edges {
+              node {
+                id
+              }
+            }
+          }
           description
           images(first: 5) {
             edges {
@@ -86,7 +93,8 @@ export async function getProductsInCollection() {
       isNew: false, // Default
       popular: false, // Default
       collections: collections, // Shopify collections
-      onlineStoreUrl: node.onlineStoreUrl
+      onlineStoreUrl: node.onlineStoreUrl,
+      variantId: node.variants?.edges[0]?.node?.id?.split("/").pop()
     };
   });
 }
@@ -102,6 +110,13 @@ export async function getProduct(handle: string) {
       priceRange {
         minVariantPrice {
           amount
+        }
+      }
+      variants(first: 1) {
+        edges {
+          node {
+            id
+          }
         }
       }
       images(first: 5) {
@@ -130,6 +145,7 @@ export async function getProduct(handle: string) {
     image: product.images.edges.length > 0 ? product.images.edges[0].node.url : "",
     category: "reading", // Default or fetch if needed
     onlineStoreUrl: product.onlineStoreUrl,
+    variantId: product.variants?.edges[0]?.node?.id?.split("/").pop(),
     oldPrice: undefined,
     isNew: undefined,
     popular: undefined
