@@ -39,7 +39,6 @@ export function Navbar() {
         { label: t("nav.packs"), href: "#packs" },
         { label: t("nav.community"), href: "#community" },
         { label: t("nav.library"), href: "#library" },
-        { label: t("nav.contact"), href: "#contact" },
     ]
 
     const toggleLanguage = () => {
@@ -48,6 +47,10 @@ export function Navbar() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
+        // Clear gamification data from localStorage
+        localStorage.removeItem("howstoic_gamification")
+        // Redirect to home page
+        window.location.href = "/"
     }
 
     const scrollToSection = (e: React.MouseEvent, href: string) => {
@@ -250,6 +253,48 @@ export function Navbar() {
                             </div>
 
                             <div className="mt-auto flex flex-col gap-4 border-t pt-6">
+                                {/* Authentication Section */}
+                                {!user ? (
+                                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                                        <Button variant="default" size="sm" className="w-full font-bold">
+                                            Sign In
+                                        </Button>
+                                    </Link>
+                                ) : (
+                                    <div className="space-y-3 pb-3 border-b border-border">
+                                        <div className="flex items-center gap-3">
+                                            <div className="relative w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                                                <User className="w-5 h-5 text-foreground/80" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="font-medium text-sm">Stoic Warrior</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs text-primary font-bold">Lvl {level}</span>
+                                                    <span className="text-xs text-muted-foreground">•</span>
+                                                    <span className="text-xs text-[#FFD700] font-bold">{oro} Oro</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                                            <Button variant="secondary" size="sm" className="w-full">
+                                                View Dashboard
+                                            </Button>
+                                        </Link>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            onClick={() => {
+                                                setIsMobileMenuOpen(false)
+                                                handleLogout()
+                                            }}
+                                        >
+                                            <LogOut className="w-4 h-4 mr-2" />
+                                            Logout
+                                        </Button>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-medium">Theme</span>
                                     <Button

@@ -10,7 +10,7 @@ const translations = {
             packs: "Packs",
             community: "Comunidad",
             library: "Biblioteca",
-            contact: "Contacto",
+
         },
         hero: {
             headline: "Forja tu productividad",
@@ -46,13 +46,7 @@ const translations = {
             title: "Recursos para ti",
             view: "Ver",
         },
-        contact: {
-            title: "Contacto",
-            send: "Enviar",
-            name: "Nombre",
-            email: "Email",
-            message: "Mensaje",
-        },
+
         cart: {
             title: "Carrito",
             empty: "Tu carrito está vacío",
@@ -67,7 +61,7 @@ const translations = {
             packs: "Packs",
             community: "Community",
             library: "Library",
-            contact: "Contact",
+
         },
         hero: {
             headline: "Forge your productivity",
@@ -103,13 +97,7 @@ const translations = {
             title: "Resources for you",
             view: "View",
         },
-        contact: {
-            title: "Contact",
-            send: "Send",
-            name: "Name",
-            email: "Email",
-            message: "Message",
-        },
+
         cart: {
             title: "Cart",
             empty: "Your cart is empty",
