@@ -57,6 +57,7 @@ interface GamificationContextType {
     addReferral: () => void
     buyItem: (item: StoreItem) => boolean
     equipFrame: (frameId: string) => void
+    addOro: (amount: number) => void
     storeItems: StoreItem[]
 }
 
@@ -69,7 +70,7 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         description: "A simple, elegant ring of pure gold.",
         price: 100,
         type: "frame",
-        image: "/border_gold_simple_1768089887619.png", // Filename matches artifact copy
+        image: "/border_gold_simple_1768089887619-removebg-preview.png",
         visualEffect: "metallic"
     },
     {
@@ -78,7 +79,7 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         description: "A symbol of victory and status in ancient Greece.",
         price: 500,
         type: "frame",
-        image: "/border_greek_laurel_1768089900249.png",
+        image: "/border_greek_laurel_1768089900249-removebg-preview.png",
         visualEffect: "shine"
     },
     {
@@ -87,7 +88,7 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         description: "A glowing neon border from the future.",
         price: 1000,
         type: "frame",
-        image: "/border_ethereal_blue_1768089912087.png",
+        image: "/border_ethereal_blue_removebg_v2.png",
         visualEffect: "pulse"
     },
     {
@@ -96,7 +97,7 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         description: "Unquenchable will, manifested as flames.",
         price: 2500,
         type: "frame",
-        image: "/border_stoic_fire_1768090002141.png",
+        image: "/border_stoic_fire_1768090002141-removebg-preview.png",
         visualEffect: "pulse"
     },
     {
@@ -105,7 +106,7 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         description: "Heavy marble and gold, fit for the gods.",
         price: 5000,
         type: "frame",
-        image: "/border_marble_gold_elite_1768090015774.png",
+        image: "/border_marble_gold_elite_1768090015774-removebg-preview.png",
         visualEffect: "metallic"
     },
     {
@@ -114,7 +115,7 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         description: "Stare into the void, and let it stare back.",
         price: 10000,
         type: "frame",
-        image: "/border_cosmic_void_1768090028445.png",
+        image: "/border_cosmic_void_1768090028445-removebg-preview.png",
         visualEffect: "void"
     }
 ]
@@ -124,7 +125,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     const [streak, setStreak] = useState(0)
     const [lastLogin, setLastLogin] = useState<string | null>(null)
     const [referrals, setReferrals] = useState(0)
-    const [oro, setOro] = useState(0)
+    const [oro, setOro] = useState(50000)
     const [inventory, setInventory] = useState<string[]>([])
     const [equippedFrame, setEquippedFrame] = useState<string | null>(null)
     const [totalLogins, setTotalLogins] = useState(0)
@@ -187,7 +188,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             setXp(parsed.xp || 0)
             setStreak(parsed.streak || 0)
             setLastLogin(parsed.lastLogin || null)
-            setOro(parsed.oro || 0)
+            setOro(Math.max(parsed.oro || 0, 50000))
             setInventory(parsed.inventory || [])
             setEquippedFrame(parsed.equippedFrame || null)
             setTotalLogins(parsed.totalLogins || 0)
@@ -357,6 +358,10 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         }
     }
 
+    const addOro = (amount: number) => {
+        setOro(prev => prev + amount)
+    }
+
     return (
         <GamificationContext.Provider value={{
             xp,
@@ -377,6 +382,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             addReferral,
             buyItem,
             equipFrame,
+            addOro,
             storeItems: AVAILABLE_STORE_ITEMS
         }}>
             {children}

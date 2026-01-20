@@ -10,7 +10,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export default function TavernPage() {
-    const { oro, buyItem, inventory, equipFrame, equippedFrame, storeItems } = useGamification()
+    const { oro, buyItem, inventory, equipFrame, equippedFrame, storeItems, addOro } = useGamification()
     const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null)
 
     const handleBuy = (item: StoreItem) => {
@@ -86,7 +86,7 @@ export default function TavernPage() {
                                                 src={item.image}
                                                 alt={item.name}
                                                 fill
-                                                className="object-contain relative z-10 mix-blend-screen"
+                                                className="object-contain relative z-10"
                                                 onError={(e) => {
                                                     // Fallback if image fails
                                                     e.currentTarget.style.display = 'none'
@@ -153,6 +153,47 @@ export default function TavernPage() {
                             </motion.div>
                         )
                     })}
+                </div>
+
+                {/* Buy Oro Section */}
+                <div className="mt-20 max-w-4xl mx-auto">
+                    <div className="text-center mb-10">
+                        <h2 className="text-3xl font-serif font-bold text-[#FFD700] mb-2">Treasury of the Empire</h2>
+                        <p className="text-white/60">Acquire more wealth to show your status.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[
+                            { amount: 500, price: 4.99, name: "Pouch of coin", icon: Coins, color: "bg-amber-600" },
+                            { amount: 1500, price: 9.99, name: "Merchant's sack", icon: Coins, color: "bg-slate-400" },
+                            { amount: 5000, price: 24.99, name: "Emperor's Chest", icon: Coins, color: "bg-[#FFD700]" }
+                        ].map((pack, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 flex flex-col items-center text-center hover:border-[#FFD700]/30 transition-colors group"
+                            >
+                                <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mb-4 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.3)] group-hover:scale-110 transition-transform", pack.color)}>
+                                    <pack.icon className="w-8 h-8" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-1">{pack.name}</h3>
+                                <p className="text-[#FFD700] font-bold text-2xl mb-6">+{pack.amount} Oro</p>
+
+                                <Button
+                                    className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                                    onClick={() => {
+                                        addOro(pack.amount)
+                                        // Ideally confirm payment
+                                    }}
+                                >
+                                    ${pack.price}
+                                </Button>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
