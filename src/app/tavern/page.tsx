@@ -10,14 +10,17 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export default function TavernPage() {
-    const { oro, buyItem, inventory, equipFrame, equippedFrame, storeItems, addOro } = useGamification()
+    const { oro, buyItem, inventory, equipFrame, equippedFrame, equipTheme, equippedTheme, storeItems, addOro } = useGamification()
     const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null)
+    const [isBuying, setIsBuying] = useState(false)
 
-    const handleBuy = (item: StoreItem) => {
-        if (buyItem(item)) {
+    const handleBuy = async (item: StoreItem) => {
+        setIsBuying(true)
+        if (await buyItem(item)) {
             // Success feedback could go here
             setSelectedItem(null)
         }
+        setIsBuying(false)
     }
 
     return (
@@ -63,6 +66,9 @@ export default function TavernPage() {
                         const isOwned = inventory.includes(item.id)
                         const canAfford = oro >= item.price
 
+                        // Theme helpers
+                        const isEquipped = item.type === "frame" ? equippedFrame === item.id : item.type === "theme" ? equippedTheme === item.id : false
+
                         return (
                             <motion.div
                                 key={item.id}
@@ -93,6 +99,35 @@ export default function TavernPage() {
                                                 }}
                                             />
                                         </div>
+                                    ) : item.type === "theme" ? (
+                                        // Theme Preview
+                                        <div className="flex flex-col gap-2 w-full max-w-[120px]">
+                                            <div className={cn("h-8 w-full rounded border overflow-hidden relative",
+                                                item.id === "theme_spartan" && "bg-[hsl(0,0%,5%)] border-[hsl(45,30%,20%)]",
+                                                item.id === "theme_marble" && "bg-[hsl(210,20%,98%)] border-[hsl(210,10%,85%)]",
+                                                item.id === "theme_void" && "bg-[hsl(222,47%,11%)] border-[hsl(196,100%,50%)]",
+                                                item.id === "theme_royal" && "bg-[hsl(260,20%,10%)] border-[hsl(45,93%,47%)]",
+                                                item.id === "theme_forest" && "bg-[hsl(150,15%,10%)] border-[hsl(142,70%,50%)]",
+                                                item.id === "theme_sunset" && "bg-[hsl(280,20%,15%)] border-[hsl(20,90%,60%)]"
+                                            )}>
+                                                <div className={cn("h-full w-1/3 border-r absolute left-0 top-0 bottom-0",
+                                                    item.id === "theme_spartan" && "bg-[hsl(0,70%,40%)] border-[hsl(45,30%,20%)]",
+                                                    item.id === "theme_marble" && "bg-[hsl(45,40%,60%)] border-[hsl(210,10%,85%)]",
+                                                    item.id === "theme_void" && "bg-[hsl(196,100%,50%)] border-[hsl(196,80%,30%)]",
+                                                    item.id === "theme_royal" && "bg-[hsl(260,30%,25%)] border-[hsl(45,93%,47%)]",
+                                                    item.id === "theme_forest" && "bg-[hsl(142,70%,50%)] border-[hsl(145,20%,25%)]",
+                                                    item.id === "theme_sunset" && "bg-[hsl(20,90%,60%)] border-[hsl(320,30%,25%)]"
+                                                )} />
+                                            </div>
+                                            <div className={cn("h-4 w-2/3 rounded-full self-center",
+                                                item.id === "theme_spartan" && "bg-[hsl(45,30%,90%)]",
+                                                item.id === "theme_marble" && "bg-[hsl(210,10%,20%)]",
+                                                item.id === "theme_void" && "bg-[hsl(210,40%,98%)]",
+                                                item.id === "theme_royal" && "bg-[hsl(260,10%,95%)]",
+                                                item.id === "theme_forest" && "bg-[hsl(140,20%,90%)]",
+                                                item.id === "theme_sunset" && "bg-[hsl(20,20%,90%)]"
+                                            )} />
+                                        </div>
                                     ) : (
                                         <div className={cn(
                                             "w-24 h-24 rounded-full flex items-center justify-center border",
@@ -101,11 +136,6 @@ export default function TavernPage() {
                                                 : "bg-[#FFD700]/10 border-[#FFD700]/30"
                                         )}>
                                             {item.id === "streak_freeze" ? (
-                                                // Using a specific icon if available (Flame or Snowflake placeholder)
-                                                // Assuming Lucide has Snowflake, or reusing Flame with blue color?
-                                                // I will use Coins for generic, but maybe I can check imports.
-                                                // Let's use Check or Coins if imports are limited, but I can add Snowflake to imports? I'll check imports first or stick to generic for now to be safe, but customize color.
-                                                // Actually I can edit imports later.
                                                 <div className="text-4xl">❄️</div>
                                             ) : (
                                                 <Coins className="w-10 h-10 text-[#FFD700]/50" />
@@ -132,10 +162,11 @@ export default function TavernPage() {
                                     <p className="text-sm text-gray-400 mb-6 min-h-[40px]">{item.description}</p>
 
                                     <Button
+                                        disabled={isBuying || (isOwned && (item.type === "frame" ? equippedFrame === item.id : item.type === "theme" ? equippedTheme === item.id : false)) || (!canAfford && !isOwned)}
                                         className={cn(
                                             "w-full font-bold tracking-wide",
-                                            isOwned && item.type === "frame"
-                                                ? (equippedFrame === item.id)
+                                            isOwned && (item.type === "frame" || item.type === "theme")
+                                                ? isEquipped
                                                     ? "bg-green-500 text-white hover:bg-green-600"
                                                     : "bg-neutral-700 text-neutral-400 hover:bg-neutral-600"
                                                 : canAfford
@@ -143,20 +174,20 @@ export default function TavernPage() {
                                                     : "bg-neutral-800 text-neutral-500 hover:bg-neutral-800 cursor-not-allowed"
                                         )}
                                         onClick={() => {
-                                            if (isOwned && item.type === "frame") {
-                                                equipFrame(item.id)
+                                            if (isOwned) {
+                                                if (item.type === "frame") equipFrame(item.id)
+                                                if (item.type === "theme") equipTheme(item.id)
                                             } else if (canAfford) {
                                                 handleBuy(item)
                                             }
                                         }}
-                                        disabled={(isOwned && item.type === "frame" && equippedFrame === item.id) || (!canAfford && !(isOwned && item.type === "frame"))}
                                     >
-                                        {isOwned && item.type === "frame" ? (
-                                            equippedFrame === item.id ? "Equipped" : "Equip"
+                                        {isOwned && (item.type === "frame" || item.type === "theme") ? (
+                                            isEquipped ? "Equipped" : "Equip"
                                         ) : (
                                             canAfford ? (
                                                 <span className="flex items-center justify-center gap-2">
-                                                    Purchase {item.type === "powerup" && isOwned && `(Owned: ${inventory.filter(id => id === item.id).length})`}
+                                                    {isBuying ? "Buying..." : `Purchase ${item.type === "powerup" && isOwned ? `(Owned: ${inventory.filter(id => id === item.id).length})` : ''}`}
                                                 </span>
                                             ) : (
                                                 <span className="flex items-center gap-2">
@@ -180,9 +211,9 @@ export default function TavernPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {[
-                            { amount: 500, price: 4.99, name: "Pouch of coin", icon: Coins, color: "bg-amber-600" },
-                            { amount: 1500, price: 9.99, name: "Merchant's sack", icon: Coins, color: "bg-slate-400" },
-                            { amount: 5000, price: 24.99, name: "Emperor's Chest", icon: Coins, color: "bg-[#FFD700]" }
+                            { amount: 1000, price: 4.99, name: "Pouch of coin", icon: Coins, color: "bg-amber-600" },
+                            { amount: 5000, price: 9.99, name: "Merchant's sack", icon: Coins, color: "bg-slate-400" },
+                            { amount: 15000, price: 24.99, name: "Emperor's Chest", icon: Coins, color: "bg-[#FFD700]" }
                         ].map((pack, i) => (
                             <motion.div
                                 key={i}

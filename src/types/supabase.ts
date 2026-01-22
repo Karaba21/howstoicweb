@@ -23,6 +23,7 @@ export interface Database {
                     equipped_frame: string | null
                     streak: number
                     last_active_date: string | null
+                    equipped_theme: string | null
                 }
                 Insert: {
                     id: string
@@ -37,6 +38,7 @@ export interface Database {
                     equipped_frame?: string | null
                     streak?: number
                     last_active_date?: string | null
+                    equipped_theme?: string | null
                 }
                 Update: {
                     id?: string
@@ -51,6 +53,7 @@ export interface Database {
                     equipped_frame?: string | null
                     streak?: number
                     last_active_date?: string | null
+                    equipped_theme?: string | null
                 }
             }
             levels: {

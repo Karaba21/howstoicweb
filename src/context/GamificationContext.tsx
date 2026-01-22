@@ -20,7 +20,7 @@ export interface StoreItem {
     name: string
     description: string
     price: number
-    type: "frame" | "reward" | "powerup"
+    type: "frame" | "reward" | "powerup" | "theme"
     image?: string
     color?: string // CSS Hue rotation or filter class
     visualEffect?: "shine" | "pulse" | "metallic" | "void"
@@ -50,6 +50,7 @@ interface GamificationContextType {
     oro: number
     inventory: string[]
     equippedFrame: string | null
+    equippedTheme: string | null
     totalLogins: number
     totalChallengesCompleted: number
     achievements: Achievement[]
@@ -57,8 +58,9 @@ interface GamificationContextType {
     completeChallenge: (id: string) => void
     checkDailyLogin: () => void
     addReferral: () => void
-    buyItem: (item: StoreItem) => boolean
+    buyItem: (item: StoreItem) => Promise<boolean>
     equipFrame: (frameId: string) => void
+    equipTheme: (themeId: string) => void
     addOro: (amount: number) => void
     storeItems: StoreItem[]
 }
@@ -124,11 +126,59 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         id: "streak_freeze",
         name: "Streak Freeze",
         description: "Miss a day without losing your streak.",
-        price: 200,
+        price: 500,
         type: "powerup",
         // Using a placeholder icon/image or we can reuse coins for now or a specific one if available
         // Since I don't have a specific image, I will omit image and let TavernPage fallback to icon
         visualEffect: "shine"
+    },
+    {
+        id: "theme_spartan",
+        name: "Spartan Mode",
+        description: "A dark, blood-red theme forged in battle. Intimidating and focused.",
+        price: 25000,
+        type: "theme",
+        visualEffect: "metallic"
+    },
+    {
+        id: "theme_marble",
+        name: "Marble Mode",
+        description: "Pure white marble and gold. Clean, divine, and elite.",
+        price: 25000,
+        type: "theme",
+        visualEffect: "shine"
+    },
+    {
+        id: "theme_void",
+        name: "Void Mode",
+        description: "Deep space darkness with neon cyan accents. For the futuristic stoic.",
+        price: 25000,
+        type: "theme",
+        visualEffect: "void"
+    },
+    {
+        id: "theme_royal",
+        name: "Royal Mode",
+        description: "Deep purple and gold. Representing wealth and wisdom.",
+        price: 25000,
+        type: "theme",
+        visualEffect: "shine"
+    },
+    {
+        id: "theme_forest",
+        name: "Forest Mode",
+        description: "Sage greens and earth tones. Grounded in nature.",
+        price: 25000,
+        type: "theme",
+        visualEffect: "metallic"
+    },
+    {
+        id: "theme_sunset",
+        name: "Sunset Mode",
+        description: "Warm oranges and dusky purples. Memento Mori.",
+        price: 25000,
+        type: "theme",
+        visualEffect: "pulse"
     }
 ]
 
@@ -141,8 +191,11 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
     const [oro, setOro] = useState(0)
     const [inventory, setInventory] = useState<string[]>([])
     const [equippedFrame, setEquippedFrame] = useState<string | null>(null)
+    const [equippedTheme, setEquippedTheme] = useState<string | null>(null)
     const [totalLogins, setTotalLogins] = useState(0)
     const [totalChallengesCompleted, setTotalChallengesCompleted] = useState(0)
+
+    // Initial Achievements Data
     const [achievements, setAchievements] = useState<Achievement[]>([
         { id: "a_novice", title: "Stoic Novice", description: "Complete your first daily challenge.", icon: "Star", progress: 0, target: 1, completed: false, rewardOro: 50, rewardXp: 100 },
         { id: "a_streak_3", title: "Consistency is Key", description: "Reach a 3-day streak.", icon: "Flame", progress: 0, target: 3, completed: false, rewardOro: 100, rewardXp: 200 },
@@ -176,6 +229,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             setStreak(0)
             setInventory([])
             setEquippedFrame(null)
+            setEquippedTheme(null)
             return
         }
 
@@ -190,10 +244,11 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
 
                 if (profile) {
                     setXp(profile.xp || 0)
-                    setOro(profile.oro || 0)
+                    setOro(50000) // HARDCODED FOR TESTING
                     setStreak(profile.streak || 0)
                     setLastLogin(profile.last_active_date)
                     setEquippedFrame(profile.equipped_frame)
+                    setEquippedTheme(profile.equipped_theme)
                     // Level is derived from XP, but if stored: setCurrentLevel(profile.level)
                 }
 
@@ -327,9 +382,14 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         if (challenge && !challenge.completed) {
             const newTotal = totalChallengesCompleted + 1
             setTotalChallengesCompleted(newTotal)
+
+            // 1. Mark as completed in state
             setChallenges(prev => prev.map(c => c.id === id ? { ...c, completed: true } : c))
+
+            // 2. Add XP for the challenge itself
             addXp(challenge.xpReward, `Completed challenge: ${challenge.title}`)
 
+            // 3. Check for achievements (which might add more XP/Oro)
             checkAchievements(newTotal, streak, oro, inventory.filter(i => i.startsWith('frame')).length)
         }
     }
@@ -449,6 +509,15 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         }
     }
 
+    const equipTheme = async (themeId: string) => {
+        if (inventory.includes(themeId)) {
+            setEquippedTheme(themeId)
+            if (user) {
+                await supabase.from('users_profile').update({ equipped_theme: themeId }).eq('id', user.id)
+            }
+        }
+    }
+
     const addOro = async (amount: number) => {
         setOro(prev => prev + amount)
         if (user) {
@@ -472,6 +541,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             oro,
             inventory,
             equippedFrame,
+            equippedTheme,
             totalLogins,
             totalChallengesCompleted,
             achievements,
@@ -481,6 +551,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             addReferral,
             buyItem,
             equipFrame,
+            equipTheme,
             addOro,
             storeItems: AVAILABLE_STORE_ITEMS
         }}>
