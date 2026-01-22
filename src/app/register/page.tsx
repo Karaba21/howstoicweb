@@ -40,8 +40,8 @@ export default function RegisterPage() {
 
             if (error) throw error
 
-            router.push("/")
-            router.refresh()
+            // Redirect to verify email page
+            router.push(`/verify-email?email=${encodeURIComponent(email)}`)
         } catch (err: any) {
             console.error("FULL SIGNUP ERROR:", err)
             setError(err.message || "An unknown error occurred")
