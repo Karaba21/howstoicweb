@@ -244,7 +244,7 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
 
                 if (profile) {
                     setXp(profile.xp || 0)
-                    setOro(50000) // HARDCODED FOR TESTING
+                    setOro(profile.oro || 0)
                     setStreak(profile.streak || 0)
                     setLastLogin(profile.last_active_date)
                     setEquippedFrame(profile.equipped_frame)
