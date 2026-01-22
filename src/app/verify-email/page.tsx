@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { Mail, CheckCircle } from "lucide-react"
 import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
     const searchParams = useSearchParams()
     const email = searchParams.get("email") || "tu email"
 
@@ -72,5 +73,27 @@ export default function VerifyEmailPage() {
                 </div>
             </Card>
         </main>
+    )
+}
+
+export default function VerifyEmailPage() {
+    return (
+        <Suspense fallback={
+            <main className="min-h-screen relative flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-background overflow-hidden -z-10">
+                    <div className="absolute top-0 left-0 w-full h-full bg-grid-white/[0.02] dark:bg-grid-white/[0.05]" />
+                </div>
+                <Card className="w-full max-w-md p-8 backdrop-blur-xl bg-background/60 border-white/10 shadow-2xl">
+                    <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 border border-primary/20">
+                            <Mail className="w-8 h-8 text-primary animate-pulse" />
+                        </div>
+                        <p className="text-muted-foreground">Cargando...</p>
+                    </div>
+                </Card>
+            </main>
+        }>
+            <VerifyEmailContent />
+        </Suspense>
     )
 }

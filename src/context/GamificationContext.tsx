@@ -3,7 +3,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { supabase } from "@/lib/supabase"
-// import { toast } from "sonner" 
+import type { Database } from "@/types/supabase"
+// import { toast } from "sonner"
+
+// Type aliases for cleaner code
+type Profile = Database['public']['Tables']['users_profile']['Row']
+type UserInventory = Database['public']['Tables']['user_inventory']['Row']
+type UserAchievement = Database['public']['Tables']['user_achievements']['Row']
 
 // Challenge Interface
 export interface Challenge {
@@ -236,13 +242,16 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         const fetchData = async () => {
             try {
                 // 1. Fetch Profile
-                const { data: profile, error: profileError } = await supabase
+                const profileResult = await (supabase as any)
                     .from('users_profile')
                     .select('*')
                     .eq('id', user.id)
                     .single()
 
-                if (profile) {
+                if (profileResult.error) {
+                    console.error("Error fetching profile:", profileResult.error)
+                } else if (profileResult.data) {
+                    const profile = profileResult.data as Profile
                     setXp(profile.xp || 0)
                     setOro(profile.oro || 0)
                     setStreak(profile.streak || 0)
@@ -253,24 +262,25 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                 }
 
                 // 2. Fetch Inventory
-                const { data: invItems } = await supabase
+                const invResult = await (supabase as any)
                     .from('user_inventory')
                     .select('item_id')
                     .eq('user_id', user.id)
 
-                if (invItems) {
-                    setInventory(invItems.map(i => i.item_id))
+                if (invResult.data) {
+                    setInventory((invResult.data as Pick<UserInventory, 'item_id'>[]).map(i => i.item_id))
                 }
 
                 // 3. Fetch User Achievements (Progress)
-                const { data: userAch } = await supabase
+                const achResult = await (supabase as any)
                     .from('user_achievements')
                     .select('*')
                     .eq('user_id', user.id)
 
-                if (userAch) {
+                if (achResult.data) {
+                    const userAchievements = achResult.data as UserAchievement[]
                     setAchievements(prev => prev.map(base => {
-                        const found = userAch.find(ua => ua.achievement_id === base.id)
+                        const found = userAchievements.find(ua => ua.achievement_id === base.id)
                         return found
                             ? { ...base, progress: found.progress, completed: found.completed }
                             : base
@@ -293,7 +303,9 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             // NOTE: Ideally we check if this level was already reached in DB to avoid duplicate rewards on refresh.
             // For now, we assume simple client-side tracking for the session or we need 'level' in DB to be updated only when changed.
             if (user) {
-                supabase.from('users_profile').update({ level: calculatedLevel }).eq('id', user.id).then()
+                type ProfileUpdate = Database['public']['Tables']['users_profile']['Update']
+                const updateData: ProfileUpdate = { level: calculatedLevel }
+                    ; (supabase as any).from('users_profile').update(updateData).eq('id', user.id).then()
             }
         }
     }, [calculatedLevel, currentLevel, user])
@@ -306,21 +318,29 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
 
         if (!user) return
 
-        // DB Update
-        await supabase.rpc('increment_xp', { x: amount, user_id: user.id }).catch(async () => {
-            // Fallback if RPC missing
-            const { data } = await supabase.from('users_profile').select('xp').eq('id', user.id).single()
-            if (data) {
-                await supabase.from('users_profile').update({ xp: data.xp + amount }).eq('id', user.id)
+        // DB Update - using direct update since RPC types aren't working
+        const { data: currentProfile } = await supabase
+            .from('users_profile')
+            .select('xp')
+            .eq('id', user.id)
+            .single()
+
+        if (currentProfile) {
+            const profile = currentProfile as Pick<Profile, 'xp'>
+            const updateData: Database['public']['Tables']['users_profile']['Update'] = {
+                xp: profile.xp + amount
             }
-        })
+            await (supabase as any).from('users_profile').update(updateData).eq('id', user.id)
+        }
     }
 
     const checkAchievements = async (currentTotalChallenges: number, currentStreak: number, currentOro: number, currentFrames: number) => {
         // This function is complex: it checks rules and updates specific achievements.
         // We'll iterate and update Supabase for any CHANGED achievement.
 
-        const nextAchievements = achievements.map(ach => {
+        type AchievementWithCompletion = Achievement & { newlyCompleted?: boolean }
+
+        const nextAchievements: AchievementWithCompletion[] = achievements.map(ach => {
             if (ach.completed) return ach // Already done
 
             let newProgress = ach.progress
@@ -352,20 +372,25 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         })
 
         if (changed.length > 0) {
-            setAchievements(nextAchievements.map(a => ({ ...a, completed: a.completed || a.newlyCompleted })))
+            setAchievements(nextAchievements.map(a => ({
+                ...a,
+                completed: Boolean(a.completed || a.newlyCompleted),
+                newlyCompleted: undefined  // Remove the temporary property
+            })) as Achievement[])
 
             if (!user) return
 
             // Push updates to Supabase
             for (const ach of changed) {
                 // Upsert user_achievements
-                await supabase.from('user_achievements').upsert({
+                const upsertData: Database['public']['Tables']['user_achievements']['Insert'] = {
                     user_id: user.id,
                     achievement_id: ach.id,
                     progress: ach.progress,
-                    completed: ach.completed || ach.newlyCompleted,
+                    completed: ach.completed || (ach.newlyCompleted ?? false),
                     updated_at: new Date().toISOString()
-                })
+                }
+                await (supabase as any).from('user_achievements').upsert(upsertData)
 
                 if (ach.newlyCompleted) {
                     // Give Rewards
@@ -425,9 +450,10 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
                     // users_inventory definition was: id, user_id, item_id. 
                     // So we delete one row with item_id = 'streak_freeze'.
 
-                    const { data: freezeItem } = await supabase.from('user_inventory').select('id').eq('user_id', user.id).eq('item_id', 'streak_freeze').limit(1).single()
-                    if (freezeItem) {
-                        await supabase.from('user_inventory').delete().eq('id', freezeItem.id)
+                    const freezeResult = await (supabase as any).from('user_inventory').select('id').eq('user_id', user.id).eq('item_id', 'streak_freeze').limit(1).single()
+                    if (freezeResult.data) {
+                        const freezeItem = freezeResult.data as Pick<UserInventory, 'id'>
+                        await (supabase as any).from('user_inventory').delete().eq('id', freezeItem.id)
                         // Update local inventory
                         setInventory(prev => {
                             const idx = prev.indexOf('streak_freeze')
@@ -455,11 +481,12 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             setTotalLogins(prev => prev + 1)
 
             // DB Update Profile
-            await supabase.from('users_profile').update({
+            const profileUpdate: Database['public']['Tables']['users_profile']['Update'] = {
                 streak: newStreak,
                 last_active_date: new Date().toISOString(),
                 // could also update total_logins if we added that field
-            }).eq('id', user.id)
+            }
+            await (supabase as any).from('users_profile').update(profileUpdate).eq('id', user.id)
 
             checkAchievements(totalChallengesCompleted, newStreak, oro, inventory.filter(i => i.startsWith('frame')).length)
 
@@ -481,14 +508,15 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
 
             if (user) {
                 // DB Transaction-ish
-                const { error } = await supabase.from('user_inventory').insert({
+                const inventoryInsert: Database['public']['Tables']['user_inventory']['Insert'] = {
                     user_id: user.id,
                     item_id: item.id,
                     item_type: item.type
-                })
+                }
+                const { error } = await (supabase as any).from('user_inventory').insert(inventoryInsert)
 
                 if (!error) {
-                    await supabase.from('users_profile').update({ oro: oro - item.price }).eq('id', user.id)
+                    await (supabase as any).from('users_profile').update({ oro: oro - item.price }).eq('id', user.id)
                     return true
                 } else {
                     // Revert on error?
@@ -504,7 +532,8 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         if (inventory.includes(frameId)) {
             setEquippedFrame(frameId)
             if (user) {
-                await supabase.from('users_profile').update({ equipped_frame: frameId }).eq('id', user.id)
+                const frameUpdate: Database['public']['Tables']['users_profile']['Update'] = { equipped_frame: frameId }
+                await (supabase as any).from('users_profile').update(frameUpdate).eq('id', user.id)
             }
         }
     }
@@ -513,7 +542,8 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         if (inventory.includes(themeId)) {
             setEquippedTheme(themeId)
             if (user) {
-                await supabase.from('users_profile').update({ equipped_theme: themeId }).eq('id', user.id)
+                const themeUpdate: Database['public']['Tables']['users_profile']['Update'] = { equipped_theme: themeId }
+                await (supabase as any).from('users_profile').update(themeUpdate).eq('id', user.id)
             }
         }
     }
@@ -523,9 +553,13 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         if (user) {
             // Fetch fresh or just increment? simpler to fetch for safety or use RPC?
             // Assuming no huge race conditions for single user:
-            const { data } = await supabase.from('users_profile').select('oro').eq('id', user.id).single()
-            if (data) {
-                await supabase.from('users_profile').update({ oro: (data.oro || 0) + amount }).eq('id', user.id)
+            const oroResult = await (supabase as any).from('users_profile').select('oro').eq('id', user.id).single()
+            if (oroResult.data) {
+                const currentOroData = oroResult.data as Pick<Profile, 'oro'>
+                const oroUpdate: Database['public']['Tables']['users_profile']['Update'] = {
+                    oro: (currentOroData.oro || 0) + amount
+                }
+                await (supabase as any).from('users_profile').update(oroUpdate).eq('id', user.id)
             }
         }
     }
