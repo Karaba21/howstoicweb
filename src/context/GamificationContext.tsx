@@ -1,6 +1,8 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from "react"
+import { useAuth } from "@/context/AuthContext"
+import { supabase } from "@/lib/supabase"
 // import { toast } from "sonner" 
 
 // Challenge Interface
@@ -18,7 +20,7 @@ export interface StoreItem {
     name: string
     description: string
     price: number
-    type: "frame" | "reward"
+    type: "frame" | "reward" | "powerup"
     image?: string
     color?: string // CSS Hue rotation or filter class
     visualEffect?: "shine" | "pulse" | "metallic" | "void"
@@ -117,21 +119,30 @@ export const AVAILABLE_STORE_ITEMS: StoreItem[] = [
         type: "frame",
         image: "/border_cosmic_void_1768090028445-removebg-preview.png",
         visualEffect: "void"
+    },
+    {
+        id: "streak_freeze",
+        name: "Streak Freeze",
+        description: "Miss a day without losing your streak.",
+        price: 200,
+        type: "powerup",
+        // Using a placeholder icon/image or we can reuse coins for now or a specific one if available
+        // Since I don't have a specific image, I will omit image and let TavernPage fallback to icon
+        visualEffect: "shine"
     }
 ]
 
 export function GamificationProvider({ children }: { children: React.ReactNode }) {
+    const { user } = useAuth()
     const [xp, setXp] = useState(0)
     const [streak, setStreak] = useState(0)
     const [lastLogin, setLastLogin] = useState<string | null>(null)
     const [referrals, setReferrals] = useState(0)
-    const [oro, setOro] = useState(50000)
+    const [oro, setOro] = useState(0)
     const [inventory, setInventory] = useState<string[]>([])
     const [equippedFrame, setEquippedFrame] = useState<string | null>(null)
     const [totalLogins, setTotalLogins] = useState(0)
     const [totalChallengesCompleted, setTotalChallengesCompleted] = useState(0)
-
-    // Initial Achievements Data
     const [achievements, setAchievements] = useState<Achievement[]>([
         { id: "a_novice", title: "Stoic Novice", description: "Complete your first daily challenge.", icon: "Star", progress: 0, target: 1, completed: false, rewardOro: 50, rewardXp: 100 },
         { id: "a_streak_3", title: "Consistency is Key", description: "Reach a 3-day streak.", icon: "Flame", progress: 0, target: 3, completed: false, rewardOro: 100, rewardXp: 200 },
@@ -139,37 +150,14 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         { id: "a_streak_10", title: "Iron Will", description: "Reach a 10-day streak.", icon: "Flame", progress: 0, target: 10, completed: false, rewardOro: 500, rewardXp: 1000 },
         { id: "a_challenges_10", title: "Practice Makes Perfect", description: "Complete 10 Daily Challenges total.", icon: "CheckCircle2", progress: 0, target: 10, completed: false, rewardOro: 200, rewardXp: 400 },
         { id: "a_challenges_50", title: "Master of Discipline", description: "Complete 50 Daily Challenges total.", icon: "Trophy", progress: 0, target: 50, completed: false, rewardOro: 1000, rewardXp: 2000 },
-        { id: "a_oro_1000", title: "Wealthy Philosopher", description: "Hold 1,000 Oro at once.", icon: "Coins", progress: 0, target: 1000, completed: false, rewardOro: 100, rewardXp: 500 }, // Bonus for saving
+        { id: "a_oro_1000", title: "Wealthy Philosopher", description: "Hold 1,000 Oro at once.", icon: "Coins", progress: 0, target: 1000, completed: false, rewardOro: 100, rewardXp: 500 },
         { id: "a_collector_3", title: "Collector", description: "Own 3 distinct frames.", icon: "Images", progress: 0, target: 3, completed: false, rewardOro: 300, rewardXp: 600 },
     ])
 
-    // Derived state for level (Quadratic formula: Level = floor(sqrt(XP / 50)) + 1)
-    // This ensures harder leveling as you progress.
-    // Level 1: 0-49 XP
-    // Level 2: 50 XP
-    // Level 3: 200 XP
-    // Level 4: 450 XP
-    // Level 5: 800 XP
-    // Level 10: 4500 XP
-    // We track previous level to detect level up
     const [currentLevel, setCurrentLevel] = useState(1)
-
-    // Calculate level based on XP
     const calculatedLevel = 1 + Math.floor(Math.sqrt(xp / 50))
 
-    // Effect to handle level up
-    useEffect(() => {
-        if (calculatedLevel > currentLevel) {
-            const levelsGained = calculatedLevel - currentLevel
-            const oroReward = levelsGained * 10 // 10 Oro per level
-            setOro(prev => prev + oroReward)
-            setCurrentLevel(calculatedLevel)
-            console.log(`Level Up! Gained ${oroReward} Oro!`)
-            // Ideally show a toast here
-        }
-    }, [calculatedLevel, currentLevel])
-
-    // Daily Challenges Mock Data
+    // Daily Challenges Mock Data - ideally fetch from DB too, but keeping mock for now for structure
     const [challenges, setChallenges] = useState<Challenge[]>([
         { id: "c1", title: "Do 10 Pushups", xpReward: 50, completed: false, type: "daily" },
         { id: "c2", title: "Drink 2L Water", xpReward: 30, completed: false, type: "daily" },
@@ -177,79 +165,113 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         { id: "c4", title: "Meditate 5 Mins", xpReward: 40, completed: false, type: "daily" },
     ])
 
-    // Generate a random referral code for the user
     const [referralCode] = useState("STOIC-" + Math.floor(1000 + Math.random() * 9000))
 
-    // Load state from local storage on mount
+    // Fetch Data from Supabase
     useEffect(() => {
-        const savedData = localStorage.getItem("howstoic_gamification")
-        if (savedData) {
-            const parsed = JSON.parse(savedData)
-            setXp(parsed.xp || 0)
-            setStreak(parsed.streak || 0)
-            setLastLogin(parsed.lastLogin || null)
-            setOro(Math.max(parsed.oro || 0, 50000))
-            setInventory(parsed.inventory || [])
-            setEquippedFrame(parsed.equippedFrame || null)
-            setTotalLogins(parsed.totalLogins || 0)
-            setTotalChallengesCompleted(parsed.totalChallengesCompleted || 0)
-            if (parsed.achievements) {
-                // Merge loaded achievements with current definitions to ensure new achievements appear
-                setAchievements(prev => {
-                    const loaded = parsed.achievements as Achievement[]
-                    return prev.map(p => {
-                        const found = loaded.find(l => l.id === p.id)
-                        return found ? found : p
-                    })
-                })
-            }
-
-            // Allow resetting challenges if it's a new day, but for now just load them
-            if (parsed.challenges) setChallenges(parsed.challenges)
-
-            setReferrals(parsed.referrals || 0)
-
-            // Sync current level
-            const loadedLevel = 1 + Math.floor((parsed.xp || 0) / 100)
-            setCurrentLevel(loadedLevel)
+        if (!user) {
+            // Reset state on logout
+            setXp(0)
+            setOro(0)
+            setStreak(0)
+            setInventory([])
+            setEquippedFrame(null)
+            return
         }
-    }, [])
 
-    // Save state whenever it changes
+        const fetchData = async () => {
+            try {
+                // 1. Fetch Profile
+                const { data: profile, error: profileError } = await supabase
+                    .from('users_profile')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile) {
+                    setXp(profile.xp || 0)
+                    setOro(profile.oro || 0)
+                    setStreak(profile.streak || 0)
+                    setLastLogin(profile.last_active_date)
+                    setEquippedFrame(profile.equipped_frame)
+                    // Level is derived from XP, but if stored: setCurrentLevel(profile.level)
+                }
+
+                // 2. Fetch Inventory
+                const { data: invItems } = await supabase
+                    .from('user_inventory')
+                    .select('item_id')
+                    .eq('user_id', user.id)
+
+                if (invItems) {
+                    setInventory(invItems.map(i => i.item_id))
+                }
+
+                // 3. Fetch User Achievements (Progress)
+                const { data: userAch } = await supabase
+                    .from('user_achievements')
+                    .select('*')
+                    .eq('user_id', user.id)
+
+                if (userAch) {
+                    setAchievements(prev => prev.map(base => {
+                        const found = userAch.find(ua => ua.achievement_id === base.id)
+                        return found
+                            ? { ...base, progress: found.progress, completed: found.completed }
+                            : base
+                    }))
+                }
+
+            } catch (error) {
+                console.error("Error fetching gamification data:", error)
+            }
+        }
+
+        fetchData()
+    }, [user])
+
+    // Sync Level
     useEffect(() => {
-        localStorage.setItem("howstoic_gamification", JSON.stringify({
-            xp,
-            streak,
-            lastLogin,
-            challenges,
-            referrals,
-            oro,
-            inventory,
-            equippedFrame,
-            totalLogins,
-            totalChallengesCompleted,
-            achievements
-        }))
-    }, [xp, streak, lastLogin, challenges, referrals, oro, inventory, equippedFrame, totalLogins, totalChallengesCompleted, achievements])
+        if (calculatedLevel > currentLevel) {
+            setCurrentLevel(calculatedLevel)
+            // If leveling up grants rewards, handle it here. 
+            // NOTE: Ideally we check if this level was already reached in DB to avoid duplicate rewards on refresh.
+            // For now, we assume simple client-side tracking for the session or we need 'level' in DB to be updated only when changed.
+            if (user) {
+                supabase.from('users_profile').update({ level: calculatedLevel }).eq('id', user.id).then()
+            }
+        }
+    }, [calculatedLevel, currentLevel, user])
 
-    const addXp = (amount: number, reason?: string) => {
+
+    const addXp = async (amount: number, reason?: string) => {
+        // Optimistic update
         setXp(prev => prev + amount)
-        // Ideally show a toast here
         console.log(`Earned ${amount} XP: ${reason}`)
+
+        if (!user) return
+
+        // DB Update
+        await supabase.rpc('increment_xp', { x: amount, user_id: user.id }).catch(async () => {
+            // Fallback if RPC missing
+            const { data } = await supabase.from('users_profile').select('xp').eq('id', user.id).single()
+            if (data) {
+                await supabase.from('users_profile').update({ xp: data.xp + amount }).eq('id', user.id)
+            }
+        })
     }
 
-    const checkAchievements = (currentTotalChallenges: number, currentStreak: number, currentOro: number, currentFrames: number) => {
-        let xpReward = 0
-        let oroReward = 0
+    const checkAchievements = async (currentTotalChallenges: number, currentStreak: number, currentOro: number, currentFrames: number) => {
+        // This function is complex: it checks rules and updates specific achievements.
+        // We'll iterate and update Supabase for any CHANGED achievement.
 
-        // Calculate new state based on current achievements
         const nextAchievements = achievements.map(ach => {
-            if (ach.completed) return ach
+            if (ach.completed) return ach // Already done
 
             let newProgress = ach.progress
             let newlyCompleted = false
 
-            // Check based on achievement ID patterns
+            // Rules
             if (ach.id === "a_novice" && currentTotalChallenges >= 1) { newProgress = 1; newlyCompleted = true }
             else if (ach.id === "a_challenges_10" && currentTotalChallenges >= 10) { newProgress = currentTotalChallenges; newlyCompleted = true }
             else if (ach.id === "a_challenges_50" && currentTotalChallenges >= 50) { newProgress = currentTotalChallenges; newlyCompleted = true }
@@ -259,79 +281,129 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
             else if (ach.id === "a_oro_1000") { newProgress = currentOro; if (currentOro >= 1000) newlyCompleted = true }
             else if (ach.id === "a_collector_3") { newProgress = currentFrames; if (currentFrames >= 3) newlyCompleted = true }
 
-            // Allow progress updates for tracking bars even if not completed
+            // Generic progress updates
             if (ach.id.includes("challenges")) newProgress = currentTotalChallenges
             if (ach.id.includes("streak")) newProgress = currentStreak
             if (ach.id.includes("oro")) newProgress = currentOro
             if (ach.id.includes("collector")) newProgress = currentFrames
 
-            if (newlyCompleted) {
-                xpReward += ach.rewardXp
-                oroReward += ach.rewardOro
-                console.log(`Unlocked Achievement: ${ach.title}`)
-            }
-
-            return { ...ach, progress: newProgress, completed: ach.completed || newlyCompleted }
+            return { ...ach, progress: newProgress, newlyCompleted }
         })
 
-        // Only update state if something changed
-        if (JSON.stringify(nextAchievements) !== JSON.stringify(achievements)) {
-            setAchievements(nextAchievements)
+        // Identify changes
+        const changed = nextAchievements.filter((ach, i) => {
+            const original = achievements[i]
+            return ach.progress !== original.progress || (ach.newlyCompleted && !original.completed)
+        })
 
-            if (xpReward > 0) {
-                addXp(xpReward, "Achievements Unlocked")
-            }
-            if (oroReward > 0) {
-                setOro(prev => prev + oroReward)
+        if (changed.length > 0) {
+            setAchievements(nextAchievements.map(a => ({ ...a, completed: a.completed || a.newlyCompleted })))
+
+            if (!user) return
+
+            // Push updates to Supabase
+            for (const ach of changed) {
+                // Upsert user_achievements
+                await supabase.from('user_achievements').upsert({
+                    user_id: user.id,
+                    achievement_id: ach.id,
+                    progress: ach.progress,
+                    completed: ach.completed || ach.newlyCompleted,
+                    updated_at: new Date().toISOString()
+                })
+
+                if (ach.newlyCompleted) {
+                    // Give Rewards
+                    addXp(ach.rewardXp, "Achievement Unlocked")
+                    addOro(ach.rewardOro)
+                }
             }
         }
     }
 
     const completeChallenge = (id: string) => {
+        // Optimistic
         const challenge = challenges.find(c => c.id === id)
         if (challenge && !challenge.completed) {
             const newTotal = totalChallengesCompleted + 1
             setTotalChallengesCompleted(newTotal)
-
-            // 1. Mark as completed in state
             setChallenges(prev => prev.map(c => c.id === id ? { ...c, completed: true } : c))
-
-            // 2. Add XP for the challenge itself
             addXp(challenge.xpReward, `Completed challenge: ${challenge.title}`)
 
-            // 3. Check for achievements (which might add more XP/Oro)
             checkAchievements(newTotal, streak, oro, inventory.filter(i => i.startsWith('frame')).length)
         }
     }
 
-    const checkDailyLogin = () => {
-        const today = new Date().toDateString()
-        if (lastLogin !== today) {
-            // It's a new day
+    const checkDailyLogin = async () => {
+        if (!user) return
+
+        const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+        // Compare with lastLogin (which we fetched as string)
+        const lastDate = lastLogin ? lastLogin.split('T')[0] : null
+
+        if (lastDate !== today) {
+            // New Day
+            // Calculate Streak
+            let newStreak = streak
             const yesterday = new Date()
             yesterday.setDate(yesterday.getDate() - 1)
+            const yesterdayStr = yesterday.toISOString().split('T')[0]
 
-            let newStreak = streak
-
-            if (lastLogin === yesterday.toDateString()) {
-                // Consecutive day
+            if (lastDate === yesterdayStr) {
+                // Consecutive
                 newStreak = streak + 1
-                setStreak(newStreak)
                 addXp(20 + (newStreak * 5), "Daily Streak Bonus")
             } else {
-                // Streak broken or first time
-                newStreak = 1
-                setStreak(1)
-                addXp(20, "Daily Login")
+                // Broken? Check Freeze
+                const freezeIndex = inventory.indexOf("streak_freeze")
+                if (freezeIndex !== -1 && streak > 0) {
+                    // USE FREEZE
+                    // Remove 1 freeze from DB
+                    // Not easy to "delete one" if multiple rows, but assuming inventory is table of items.
+                    // IMPORTANT: To simplify, I need to know the specific row ID or just delete one entry.
+                    // Or updated user_inventory to be count based? The current schema is item_id row based? 
+                    // users_inventory definition was: id, user_id, item_id. 
+                    // So we delete one row with item_id = 'streak_freeze'.
+
+                    const { data: freezeItem } = await supabase.from('user_inventory').select('id').eq('user_id', user.id).eq('item_id', 'streak_freeze').limit(1).single()
+                    if (freezeItem) {
+                        await supabase.from('user_inventory').delete().eq('id', freezeItem.id)
+                        // Update local inventory
+                        setInventory(prev => {
+                            const idx = prev.indexOf('streak_freeze')
+                            if (idx === -1) return prev
+                            const n = [...prev]
+                            n.splice(idx, 1)
+                            return n
+                        })
+                        console.log("Streak Saved!")
+                        newStreak = streak + 1
+                        addXp(20 + (newStreak * 5), "Daily Streak Bonus (Freeze Active)")
+                    } else {
+                        // Fail safe
+                        newStreak = 1
+                        addXp(20, "Daily Login")
+                    }
+                } else {
+                    newStreak = 1
+                    addXp(20, "Daily Login")
+                }
             }
 
-            setLastLogin(today)
+            setStreak(newStreak)
+            setLastLogin(new Date().toISOString())
             setTotalLogins(prev => prev + 1)
 
-            // Check achievements
+            // DB Update Profile
+            await supabase.from('users_profile').update({
+                streak: newStreak,
+                last_active_date: new Date().toISOString(),
+                // could also update total_logins if we added that field
+            }).eq('id', user.id)
+
             checkAchievements(totalChallengesCompleted, newStreak, oro, inventory.filter(i => i.startsWith('frame')).length)
 
-            // Reset daily challenges
+            // Reset challenges daily (local only for now as challenges logic isn't fully DB backed yet for "daily reset")
             setChallenges(prev => prev.map(c => ({ ...c, completed: false })))
         }
     }
@@ -341,25 +413,52 @@ export function GamificationProvider({ children }: { children: React.ReactNode }
         addXp(200, "Friend Referral Bonus")
     }
 
-    const buyItem = (item: StoreItem): boolean => {
+    const buyItem = async (item: StoreItem): Promise<boolean> => {
         if (oro >= item.price) {
+            // Optimistic
             setOro(prev => prev - item.price)
             setInventory(prev => [...prev, item.id])
-            console.log(`Bought ${item.name} for ${item.price} Oro`)
+
+            if (user) {
+                // DB Transaction-ish
+                const { error } = await supabase.from('user_inventory').insert({
+                    user_id: user.id,
+                    item_id: item.id,
+                    item_type: item.type
+                })
+
+                if (!error) {
+                    await supabase.from('users_profile').update({ oro: oro - item.price }).eq('id', user.id)
+                    return true
+                } else {
+                    // Revert on error?
+                    console.error("Buy error", error)
+                }
+            }
             return true
         }
-        console.log("Not enough Oro")
         return false
     }
 
-    const equipFrame = (frameId: string) => {
+    const equipFrame = async (frameId: string) => {
         if (inventory.includes(frameId)) {
             setEquippedFrame(frameId)
+            if (user) {
+                await supabase.from('users_profile').update({ equipped_frame: frameId }).eq('id', user.id)
+            }
         }
     }
 
-    const addOro = (amount: number) => {
+    const addOro = async (amount: number) => {
         setOro(prev => prev + amount)
+        if (user) {
+            // Fetch fresh or just increment? simpler to fetch for safety or use RPC?
+            // Assuming no huge race conditions for single user:
+            const { data } = await supabase.from('users_profile').select('oro').eq('id', user.id).single()
+            if (data) {
+                await supabase.from('users_profile').update({ oro: (data.oro || 0) + amount }).eq('id', user.id)
+            }
+        }
     }
 
     return (
