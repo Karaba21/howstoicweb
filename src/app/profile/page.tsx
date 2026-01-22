@@ -16,12 +16,19 @@ export default function ProfilePage() {
         inventory,
         equippedFrame,
         equipFrame,
+        equippedTheme,
+        equipTheme,
         storeItems
     } = useGamification()
 
     // Filter store items to only show owned frames
     const ownedFrames = storeItems.filter(
         item => item.type === "frame" && inventory.includes(item.id)
+    )
+
+    // Filter store items to only show owned themes
+    const ownedThemes = storeItems.filter(
+        item => item.type === "theme" && inventory.includes(item.id)
     )
 
     return (
@@ -121,6 +128,63 @@ export default function ProfilePage() {
                                             {equippedFrame === frame.id && (
                                                 <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">
                                                     Equipped
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Themes Inventory */}
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="text-2xl">🎨</span>
+                                <h2 className="text-2xl font-serif font-bold">Theme Collection</h2>
+                            </div>
+
+                            {ownedThemes.length === 0 ? (
+                                <div className="p-8 border border-dashed rounded-xl text-center text-muted-foreground">
+                                    You don't own any themes yet. Visit the Treasury to unlock them!
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    {ownedThemes.map((theme) => (
+                                        <div
+                                            key={theme.id}
+                                            className={cn(
+                                                "relative aspect-square rounded-xl border-2 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all hover:bg-secondary/50",
+                                                equippedTheme === theme.id
+                                                    ? "border-primary bg-primary/5"
+                                                    : "border-border bg-card"
+                                            )}
+                                            onClick={() => equipTheme(theme.id)}
+                                        >
+                                            <div className="flex flex-col gap-2 w-full max-w-[80%] items-center justify-center h-full">
+                                                <div className={cn("h-12 w-full rounded border shadow-lg overflow-hidden relative",
+                                                    theme.id === "theme_spartan" && "bg-[hsl(0,0%,5%)] border-[hsl(45,30%,20%)]",
+                                                    theme.id === "theme_marble" && "bg-[hsl(210,20%,98%)] border-[hsl(210,10%,85%)]",
+                                                    theme.id === "theme_void" && "bg-[hsl(222,47%,11%)] border-[hsl(196,100%,50%)]",
+                                                    theme.id === "theme_royal" && "bg-[hsl(260,20%,10%)] border-[hsl(45,93%,47%)]",
+                                                    theme.id === "theme_forest" && "bg-[hsl(150,15%,10%)] border-[hsl(142,70%,50%)]",
+                                                    theme.id === "theme_sunset" && "bg-[hsl(280,20%,15%)] border-[hsl(20,90%,60%)]"
+                                                )}>
+                                                    <div className={cn("h-full w-1/3 border-r absolute left-0 top-0 bottom-0",
+                                                        theme.id === "theme_spartan" && "bg-[hsl(0,70%,40%)] border-[hsl(45,30%,20%)]",
+                                                        theme.id === "theme_marble" && "bg-[hsl(45,40%,60%)] border-[hsl(210,10%,85%)]",
+                                                        theme.id === "theme_void" && "bg-[hsl(196,100%,50%)] border-[hsl(196,80%,30%)]",
+                                                        theme.id === "theme_royal" && "bg-[hsl(260,30%,25%)] border-[hsl(45,93%,47%)]",
+                                                        theme.id === "theme_forest" && "bg-[hsl(142,70%,50%)] border-[hsl(145,20%,25%)]",
+                                                        theme.id === "theme_sunset" && "bg-[hsl(20,90%,60%)] border-[hsl(320,30%,25%)]"
+                                                    )} />
+                                                </div>
+                                            </div>
+
+                                            <p className="text-xs font-bold text-center truncate w-full">{theme.name}</p>
+
+                                            {equippedTheme === theme.id && (
+                                                <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                                                    Active
                                                 </div>
                                             )}
                                         </div>

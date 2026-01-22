@@ -118,6 +118,217 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
   }
+
+  /* Themes - High Specificity */
+  html.theme-spartan {
+    --background: 0 0% 5%;
+    /* Very Dark Grey */
+    --foreground: 45 30% 90%;
+    /* Parchment White */
+
+    --card: 0 40% 10%;
+    /* Dark Red Tint */
+    --card-foreground: 45 30% 90%;
+
+    --popover: 0 40% 10%;
+    --popover-foreground: 45 30% 90%;
+
+    --primary: 0 70% 40%;
+    /* Spartan Red */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 60% 30%;
+    /* Bronze/Gold Dark */
+    --secondary-foreground: 45 10% 90%;
+
+    --muted: 0 20% 15%;
+    --muted-foreground: 0 10% 60%;
+
+    --accent: 0 50% 30%;
+    /* Red Accent */
+    --accent-foreground: 45 30% 90%;
+
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 45 30% 20%;
+    --input: 45 30% 20%;
+    --ring: 0 70% 40%;
+  }
+
+  html.theme-marble {
+    --background: 210 20% 98%;
+    /* White Marble */
+    --foreground: 210 10% 20%;
+    /* Dark Stone font */
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 10% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 10% 20%;
+
+    --primary: 45 40% 60%;
+    /* Muted Gold */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 10% 90%;
+    /* Light Stone */
+    --secondary-foreground: 210 10% 20%;
+
+    --muted: 210 10% 94%;
+    --muted-foreground: 210 5% 50%;
+
+    --accent: 45 30% 90%;
+    /* Gold Tint */
+    --accent-foreground: 210 10% 20%;
+
+    --destructive: 0 60% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 10% 85%;
+    --input: 210 10% 85%;
+    --ring: 45 40% 60%;
+  }
+
+  /* Void Theme (Deep Space / Neon Blue) */
+  html.theme-void {
+    --background: 222 47% 11%;
+    /* Deep Blue/Black */
+    --foreground: 210 40% 98%;
+    /* White/Blue tint */
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 196 100% 50%;
+    /* Cyan Neon */
+    --primary-foreground: 222 47.4% 11.2%;
+
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 196 80% 30%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 196 100% 50%;
+  }
+
+  /* Royal Theme (Purple / Gold) */
+  html.theme-royal {
+    --background: 260 20% 10%;
+    /* Deep Purple/Black */
+    --foreground: 260 10% 95%;
+
+    --card: 260 25% 15%;
+    --card-foreground: 260 10% 95%;
+
+    --popover: 260 25% 15%;
+    --popover-foreground: 260 10% 95%;
+
+    --primary: 45 93% 47%;
+    /* Gold */
+    --primary-foreground: 260 25% 15%;
+
+    --secondary: 260 30% 25%;
+    --secondary-foreground: 45 93% 47%;
+
+    --muted: 260 30% 20%;
+    --muted-foreground: 260 10% 70%;
+
+    --accent: 260 40% 30%;
+    --accent-foreground: 260 10% 95%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 260 30% 25%;
+    --input: 260 30% 25%;
+    --ring: 45 93% 47%;
+  }
+
+  /* Forest Theme (Sage / Earth) */
+  html.theme-forest {
+    --background: 150 15% 10%;
+    /* Deep Green/Black */
+    --foreground: 140 20% 90%;
+    /* Sage White */
+
+    --card: 150 20% 15%;
+    --card-foreground: 140 20% 90%;
+
+    --popover: 150 20% 15%;
+    --popover-foreground: 140 20% 90%;
+
+    --primary: 142 70% 50%;
+    /* Bright Green/Leaf */
+    --primary-foreground: 145 20% 10%;
+
+    --secondary: 145 20% 25%;
+    /* Moss */
+    --secondary-foreground: 140 20% 90%;
+
+    --muted: 150 20% 15%;
+    --muted-foreground: 140 10% 60%;
+
+    --accent: 30 40% 25%;
+    /* Dark Wood/Brown */
+    --accent-foreground: 140 20% 90%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 145 20% 25%;
+    --input: 145 20% 25%;
+    --ring: 142 70% 50%;
+  }
+
+  /* Sunset Theme (Warm / Orange / Purple) */
+  html.theme-sunset {
+    --background: 280 20% 15%;
+    /* Dusky Purple */
+    --foreground: 20 20% 90%;
+    /* Warm White */
+
+    --card: 280 25% 20%;
+    --card-foreground: 20 20% 90%;
+
+    --popover: 280 25% 20%;
+    --popover-foreground: 20 20% 90%;
+
+    --primary: 20 90% 60%;
+    /* Orange Sunset */
+    --primary-foreground: 280 25% 20%;
+
+    --secondary: 320 30% 25%;
+    /* Pinkish Purple */
+    --secondary-foreground: 20 90% 60%;
+
+    --muted: 280 25% 20%;
+    --muted-foreground: 320 10% 70%;
+
+    --accent: 0 50% 30%;
+    /* Dark Red/Orange */
+    --accent-foreground: 20 20% 90%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 320 30% 25%;
+    --input: 320 30% 25%;
+    --ring: 20 90% 60%;
+  }
 }
 
 @layer base {

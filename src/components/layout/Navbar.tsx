@@ -162,13 +162,7 @@ export function Navbar() {
                                         <span className="text-xs font-bold text-primary">Lvl {level}</span>
                                     </Link>
 
-                                    {/* Profile Button */}
-                                    <Link href="/profile">
-                                        <Button variant="ghost" size="sm" className="hidden md:flex gap-2">
-                                            <User className="w-4 h-4" />
-                                            <span>Profile</span>
-                                        </Button>
-                                    </Link>
+
 
                                     <Link href="/profile" className="relative group">
                                         <div className={cn("relative w-9 h-9 flex items-center justify-center rounded-full bg-secondary transition-all group-hover:bg-primary/10",
