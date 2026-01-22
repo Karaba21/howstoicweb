@@ -19,6 +19,10 @@ export interface Database {
                     level: number
                     created_at: string
                     updated_at: string
+                    oro: number
+                    equipped_frame: string | null
+                    streak: number
+                    last_active_date: string | null
                 }
                 Insert: {
                     id: string
@@ -29,6 +33,10 @@ export interface Database {
                     level?: number
                     created_at?: string
                     updated_at?: string
+                    oro?: number
+                    equipped_frame?: string | null
+                    streak?: number
+                    last_active_date?: string | null
                 }
                 Update: {
                     id?: string
@@ -39,6 +47,10 @@ export interface Database {
                     level?: number
                     created_at?: string
                     updated_at?: string
+                    oro?: number
+                    equipped_frame?: string | null
+                    streak?: number
+                    last_active_date?: string | null
                 }
             }
             levels: {
@@ -265,6 +277,87 @@ export interface Database {
                     used_at?: string
                     order_id?: string | null
                     created_at?: string
+                }
+            }
+            user_inventory: {
+                Row: {
+                    id: string
+                    user_id: string
+                    item_id: string
+                    item_type: string
+                    acquired_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    item_id: string
+                    item_type: string
+                    acquired_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    item_id?: string
+                    item_type?: string
+                    acquired_at?: string
+                }
+            }
+            achievements: {
+                Row: {
+                    id: string
+                    title: string
+                    description: string | null
+                    icon: string | null
+                    target: number
+                    reward_oro: number
+                    reward_xp: number
+                }
+                Insert: {
+                    id: string
+                    title: string
+                    description?: string | null
+                    icon?: string | null
+                    target?: number
+                    reward_oro?: number
+                    reward_xp?: number
+                }
+                Update: {
+                    id?: string
+                    title?: string
+                    description?: string | null
+                    icon?: string | null
+                    target?: number
+                    reward_oro?: number
+                    reward_xp?: number
+                }
+            }
+            user_achievements: {
+                Row: {
+                    id: string
+                    user_id: string
+                    achievement_id: string
+                    progress: number
+                    completed: boolean
+                    completed_at: string | null
+                    updated_at: string
+                }
+                Insert: {
+                    id?: string
+                    user_id: string
+                    achievement_id: string
+                    progress?: number
+                    completed?: boolean
+                    completed_at?: string | null
+                    updated_at?: string
+                }
+                Update: {
+                    id?: string
+                    user_id?: string
+                    achievement_id?: string
+                    progress?: number
+                    completed?: boolean
+                    completed_at?: string | null
+                    updated_at?: string
                 }
             }
         }

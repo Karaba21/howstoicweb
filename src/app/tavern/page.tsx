@@ -10,7 +10,7 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 
 export default function TavernPage() {
-    const { oro, buyItem, inventory, equipFrame, equippedFrame, storeItems } = useGamification()
+    const { oro, buyItem, inventory, equipFrame, equippedFrame, storeItems, addOro } = useGamification()
     const [selectedItem, setSelectedItem] = useState<StoreItem | null>(null)
 
     const handleBuy = (item: StoreItem) => {
@@ -86,7 +86,7 @@ export default function TavernPage() {
                                                 src={item.image}
                                                 alt={item.name}
                                                 fill
-                                                className="object-contain relative z-10 mix-blend-screen"
+                                                className="object-contain relative z-10"
                                                 onError={(e) => {
                                                     // Fallback if image fails
                                                     e.currentTarget.style.display = 'none'
@@ -94,8 +94,22 @@ export default function TavernPage() {
                                             />
                                         </div>
                                     ) : (
-                                        <div className="w-24 h-24 bg-[#FFD700]/10 rounded-full flex items-center justify-center border border-[#FFD700]/30">
-                                            <Coins className="w-10 h-10 text-[#FFD700]/50" />
+                                        <div className={cn(
+                                            "w-24 h-24 rounded-full flex items-center justify-center border",
+                                            item.id === "streak_freeze"
+                                                ? "bg-blue-500/10 border-blue-400/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                                                : "bg-[#FFD700]/10 border-[#FFD700]/30"
+                                        )}>
+                                            {item.id === "streak_freeze" ? (
+                                                // Using a specific icon if available (Flame or Snowflake placeholder)
+                                                // Assuming Lucide has Snowflake, or reusing Flame with blue color?
+                                                // I will use Coins for generic, but maybe I can check imports.
+                                                // Let's use Check or Coins if imports are limited, but I can add Snowflake to imports? I'll check imports first or stick to generic for now to be safe, but customize color.
+                                                // Actually I can edit imports later.
+                                                <div className="text-4xl">❄️</div>
+                                            ) : (
+                                                <Coins className="w-10 h-10 text-[#FFD700]/50" />
+                                            )}
                                         </div>
                                     )}
 
@@ -120,8 +134,8 @@ export default function TavernPage() {
                                     <Button
                                         className={cn(
                                             "w-full font-bold tracking-wide",
-                                            isOwned
-                                                ? (item.type === "frame" && equippedFrame === item.id)
+                                            isOwned && item.type === "frame"
+                                                ? (equippedFrame === item.id)
                                                     ? "bg-green-500 text-white hover:bg-green-600"
                                                     : "bg-neutral-700 text-neutral-400 hover:bg-neutral-600"
                                                 : canAfford
@@ -129,30 +143,73 @@ export default function TavernPage() {
                                                     : "bg-neutral-800 text-neutral-500 hover:bg-neutral-800 cursor-not-allowed"
                                         )}
                                         onClick={() => {
-                                            if (isOwned) {
-                                                if (item.type === "frame") equipFrame(item.id)
+                                            if (isOwned && item.type === "frame") {
+                                                equipFrame(item.id)
                                             } else if (canAfford) {
                                                 handleBuy(item)
                                             }
                                         }}
-                                        disabled={(isOwned && item.type !== "frame") || (!isOwned && !canAfford) || (item.type === "frame" && equippedFrame === item.id)}
+                                        disabled={(isOwned && item.type === "frame" && equippedFrame === item.id) || (!canAfford && !(isOwned && item.type === "frame"))}
                                     >
-                                        {isOwned ? (
-                                            item.type === "frame" ? (
-                                                equippedFrame === item.id ? "Equipped" : "Equip"
-                                            ) : "In Inventory"
-                                        ) : canAfford ? (
-                                            "Purchase"
+                                        {isOwned && item.type === "frame" ? (
+                                            equippedFrame === item.id ? "Equipped" : "Equip"
                                         ) : (
-                                            <span className="flex items-center gap-2">
-                                                <Lock className="w-3 h-3" /> Need {item.price - oro} more
-                                            </span>
+                                            canAfford ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                    Purchase {item.type === "powerup" && isOwned && `(Owned: ${inventory.filter(id => id === item.id).length})`}
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-2">
+                                                    <Lock className="w-3 h-3" /> Need {item.price - oro} more
+                                                </span>
+                                            )
                                         )}
                                     </Button>
                                 </div>
                             </motion.div>
                         )
                     })}
+                </div>
+
+                {/* Buy Oro Section */}
+                <div className="mt-20 max-w-4xl mx-auto">
+                    <div className="text-center mb-10">
+                        <h2 className="text-3xl font-serif font-bold text-[#FFD700] mb-2">Treasury of the Empire</h2>
+                        <p className="text-white/60">Acquire more wealth to show your status.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {[
+                            { amount: 500, price: 4.99, name: "Pouch of coin", icon: Coins, color: "bg-amber-600" },
+                            { amount: 1500, price: 9.99, name: "Merchant's sack", icon: Coins, color: "bg-slate-400" },
+                            { amount: 5000, price: 24.99, name: "Emperor's Chest", icon: Coins, color: "bg-[#FFD700]" }
+                        ].map((pack, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.1 }}
+                                className="bg-[#1a1a1a] border border-white/10 rounded-xl p-6 flex flex-col items-center text-center hover:border-[#FFD700]/30 transition-colors group"
+                            >
+                                <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mb-4 text-black font-bold shadow-[0_0_15px_rgba(255,215,0,0.3)] group-hover:scale-110 transition-transform", pack.color)}>
+                                    <pack.icon className="w-8 h-8" />
+                                </div>
+                                <h3 className="text-xl font-bold mb-1">{pack.name}</h3>
+                                <p className="text-[#FFD700] font-bold text-2xl mb-6">+{pack.amount} Oro</p>
+
+                                <Button
+                                    className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                                    onClick={() => {
+                                        addOro(pack.amount)
+                                        // Ideally confirm payment
+                                    }}
+                                >
+                                    ${pack.price}
+                                </Button>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
