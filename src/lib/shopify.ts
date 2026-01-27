@@ -43,10 +43,14 @@ export async function getProductsInCollection() {
               amount
             }
           }
-          variants(first: 1) {
+          variants(first: 10) {
             edges {
               node {
                 id
+                title
+                price {
+                  amount
+                }
               }
             }
           }
@@ -94,7 +98,12 @@ export async function getProductsInCollection() {
       popular: false, // Default
       collections: collections, // Shopify collections
       onlineStoreUrl: node.onlineStoreUrl,
-      variantId: node.variants?.edges[0]?.node?.id?.split("/").pop()
+      variantId: node.variants?.edges[0]?.node?.id?.split("/").pop(),
+      variants: node.variants?.edges.map((edge: any) => ({
+        id: edge.node.id.split("/").pop(),
+        title: edge.node.title,
+        price: parseFloat(edge.node.price?.amount || "0")
+      }))
     };
   });
 }
