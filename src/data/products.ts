@@ -12,5 +12,10 @@ export interface Product {
     onlineStoreUrl?: string
     collections?: string[]
     variantId?: string
+    variants?: {
+        id: string
+        title: string
+        price: number
+    }[]
 }
 

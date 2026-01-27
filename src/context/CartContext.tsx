@@ -2,17 +2,19 @@
 import React, { createContext, useContext, useState, ReactNode } from "react"
 
 export interface CartItem {
-    id: string
+    internalId: string // Unique ID for this specific cart entry
+    id: string // Product ID
     name: string
     price: number
     image?: string
     variantId?: string
+    variantTitle?: string
 }
 
 interface CartContextType {
     items: CartItem[]
-    addItem: (item: CartItem) => void
-    removeItem: (id: string) => void
+    addItem: (item: Omit<CartItem, "internalId">) => void
+    removeItem: (internalId: string) => void
     toggleCart: () => void
     isCartOpen: boolean
     total: number
@@ -24,21 +26,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([])
     const [isCartOpen, setIsCartOpen] = useState(false)
 
-    const addItem = (item: CartItem) => {
-        setItems((prev) => [...prev, item])
+    const addItem = (item: Omit<CartItem, "internalId">) => {
+        const newItem = { ...item, internalId: Math.random().toString(36).substr(2, 9) }
+        setItems((prev) => [...prev, newItem])
         setIsCartOpen(true) // Open cart when adding
     }
 
-    const removeItem = (id: string) => {
-        setItems((prev) => {
-            const index = prev.findIndex((i) => i.id === id)
-            if (index > -1) {
-                const newItems = [...prev]
-                newItems.splice(index, 1)
-                return newItems
-            }
-            return prev
-        })
+    const removeItem = (internalId: string) => {
+        setItems((prev) => prev.filter((i) => i.internalId !== internalId))
     }
 
     const toggleCart = () => setIsCartOpen(!isCartOpen)
